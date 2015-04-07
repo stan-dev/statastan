@@ -18,7 +18,7 @@ Getting Started
 1. Download and -do- stan.do, either from your do-file editor or the command line
 1. Try out the stan-example.do file
 1. Try your own data and model. The Stan modelling manual is essential reading here!
-1. You can pass your current data (the stuff you see when you typr *browse* in Stata) into Stan, but also you can send matrices and global macros, by specifying their names or typing 'all' in the *matrices* and *globals* options. Unlike BUGS / JAGS, Stan just ignores data that your model doesn't use.
+1. You can pass your current data (the stuff you see when you type *browse* in Stata) into Stan, but also you can send matrices and global macros, by specifying their names or typing 'all' in the *matrices* and *globals* options. Unlike BUGS / JAGS, Stan just ignores data that your model doesn't use.
 
 Options
 -----------------
@@ -47,12 +47,15 @@ Testing
 -----------------
 StataStan has been tested with:
 * CmdStan 2.6.2
+
 and Stata versions / flavors:
 * 11.2/IC
 * 13.1/SE
+
 with operating systems:
 * Debian Wheezy Linux (LXDE)
 * Windows Vista 32-bit
+
 We would love to hear from any Stata users with other operating systems and older versions of Stata
 
 To-do list
