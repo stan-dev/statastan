@@ -1,16 +1,19 @@
 
 [![Stan logo](https://github.com/stan-dev/stan/blob/master/logos/stanlogo-main.png?raw=true)](http://mc-stan.org)
 
-**StataStan** is the [Stata](http://www.stata.com) interface to [Stan](http://mc-stan.org). 
+**StataStan** is the [Stata](http://www.stata.com) interface to [Stan](http://mc-stan.org).
 
 Current status
 ---------
-StataStan exists in an alpha-testing form, as a single .do file. We invite all Stata users to test it out and give us feedback, either here on Github, or by email to Robert Grant at [robertstats@live.com](mailto:robertstats@live.com).
+StataStan exists in an alpha-testing form, as a single stan.do file. We invite all Stata users to test it out and give us feedback, either here on Github, or by email to Robert Grant at [robertstats@live.com](mailto:robertstats@live.com).
 
 Once it has passed testing on all major platforms, it will move to a beta-testing form as .ado and .hlp files. Finally, it will move entirely to a master and develop branch, as with other stan-dev repos, and will be submitted to [SSC](https://ideas.repec.org/s/boc/bocode.html).
 
-There is a single command, -stan-, which will fit a Stan model by Hamiltonian Monte Carlo. You can also ask for the posterior mode, which is found by optimization with the BFGS (or L-BFGS) algorithm. Further options will be added, allowing you to choose sampling algorithms, specify stepsize etc. Then, there will be other Stata commands, allowing CODA-style diagnostics and plotting after a model has been fitted and chains stored. Also, we intend to provide individual 'template' commands for common models such as are supplied in the Stan examples and manual. The aim of this is to make an introduction to using Stan for fast, flexible Bayesian modeling as easy as possible for Stata users. 
+There is a single command, -stan-, which will fit a Stan model by Hamiltonian Monte Carlo. You can also ask for the posterior mode, which is found by optimization with the BFGS (or L-BFGS) algorithm. Further options will be added, allowing you to choose sampling algorithms, specify stepsize etc. Then, there will be other Stata commands, allowing CODA-style diagnostics and plotting after a model has been fitted and chains stored. Also, we intend to provide individual 'template' commands for common models such as are supplied in the Stan examples and manual. The aim of this is to make an introduction to using Stan for fast, flexible Bayesian modeling as easy as possible for Stata users.
 
+We also want to make some simple commands to fit specific models, so that you could type something like:
+    stanxtmelogit alive i.heartattacktype delay, priors(norm(10 10)) || hospital, re(gaussian) priors(unif(0.1 50)
+and get a multilevel logistic regression for survival predicted by heart attack type and delay, clustered by hospital. The fixed effect parameters all have prior ~N(10,100), the random intercept is Gaussian and its standard deviation has a uniform weakly informative prior from 0.1 to 50.
 
 Getting Started
 ----------------
@@ -24,7 +27,8 @@ Options
 -----------------
 * datafile(_filename_): name to write data into in R/S format (in working dir)
 * modelfile(_filename_): name of Stan model (that you have already saved), which must end in .stan
-  * or you can write into your do-file: two approaches coming soon in the example.do file
+* inline: read in the model from a comment block in your current do-file. If you specify modelfile, that name will be given to the model when it is saved, and again it must end with .stan
+* thisfile: optional, to use with inline; gives the path and name of the current active do-file, used to locate the model inline. If thisfile is omitted, Stata will look at the most recent SD* file in c(tmpdir). This should work most of the time but other processes running on your computer could interfere with c(tmpdir). See the stan-example.do file for our preferred method for inline model code.
 * initsfile(_filename_): name of initial values file in R/S that you have already saved
 * load: read iterations into Stata
 * diagnose: run gradient diagnostics
@@ -67,4 +71,4 @@ Other notes
 
 Licensing
 ---------
-StataStan is licensed under BSD.   
+StataStan is licensed under BSD.
