@@ -12,7 +12,9 @@ Once it has passed testing on all major platforms, it will move to a beta-testin
 There is a single command, -stan-, which will fit a Stan model by Hamiltonian Monte Carlo. You can also ask for the posterior mode, which is found by optimization with the BFGS (or L-BFGS) algorithm. Further options will be added, allowing you to choose sampling algorithms, specify stepsize etc. Then, there will be other Stata commands, allowing CODA-style diagnostics and plotting after a model has been fitted and chains stored. Also, we intend to provide individual 'template' commands for common models such as are supplied in the Stan examples and manual. The aim of this is to make an introduction to using Stan for fast, flexible Bayesian modeling as easy as possible for Stata users.
 
 We also want to make some simple commands to fit specific models, so that you could type something like:
-    stanxtmelogit alive i.heartattacktype delay, priors(norm(10 10)) || hospital, re(gaussian) priors(unif(0.1 50)
+
+    stanxtmelogit alive i.heartattacktype delay, priors(norm(10 10)) || hospital, re(gaussian) priors(unif(0.1 50))
+
 and get a multilevel logistic regression for survival predicted by heart attack type and delay, clustered by hospital. The fixed effect parameters all have prior ~N(10,100), the random intercept is Gaussian and its standard deviation has a uniform weakly informative prior from 0.1 to 50.
 
 Getting Started
