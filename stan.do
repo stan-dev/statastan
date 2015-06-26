@@ -2,6 +2,7 @@ capture program drop stan
 
 program define stan
 syntax varlist [if] [in] [, DATAfile(string) MODELfile(string) ///
+	INLINE THISFILE(string) ///
 	INITsfile(string) LOAD DIAGnose OUTPUTfile(string) MODESFILE(string) ///
 	CHAINfile(string) WINLOGfile(string) SEED(integer -1) WARMUP(integer -1) ///
 	ITER(integer -1) THIN(integer -1) CMDstandir(string) MODE ///
@@ -14,6 +15,11 @@ syntax varlist [if] [in] [, DATAfile(string) MODELfile(string) ///
 		(following John Thompson's lead, if modelfile=="", then look for
 		a comment block in your do-file that begins with a line:
 		"data {" and this will be written out as the model
+	inline: read in the model from a comment block in this do-file
+	thisfile: optional, to use with inline; gives the path and name of the
+		current active do-file, used to locate the model inline. If 
+		thisfile is omitted, Stata will look at the most recent SD* 
+		file in c(tmpdir)
 	initsfile: name of initial values file in R/S that you have already saved
 	load: read iterations into Stata
 	diagnose: run gradient diagnostics
@@ -45,7 +51,7 @@ Notes:
 local wdir="`c(pwd)'"
 local cdir="`cmdstandir'"
 /*if "`cdir'"!="" {
-	if "$S_OS"=="windows" {
+	if lower("$S_OS")=="windows" {
 		local cdir="`cmdstandir'\"
 	}
 	else {
@@ -66,7 +72,7 @@ if "`initsfile'"=="" {
 	local initlocation=1
 }
 else {
-	if "$S_OS"=="windows" {
+	if lower("$S_OS")=="windows" {
 		local initlocation="`wdir'\`initsfile'"
 	}
 	else {
@@ -140,12 +146,81 @@ local nobs=r(N)
 
 // the capture block ensures the file handles are closed at the end, no matter what
 capture noisily {
-file open dataf using `datafile', write text replace
+
+// inline (John Thompson's approach) model written to .stan file
+if "`inline'"!="" {
+	tempname fin
+	local tdir=c(tmpdir)
+	// fetch temp do-file copy if no thisfile has been named
+	if "`thisfile'"=="" {
+		tempname lsin
+		if lower("$S_OS")=="windows" {
+			shell dir `tdir' -b -o:-D >> tdir-ls // check this works!
+		}
+		else {
+			shell ls `tdir' -t >>  tdir-ls
+		}
+		tempname lsin
+		capture file close `lsin'
+		file open `lsin' using "tdir-ls", read text 
+		// assumes there's nothing else on the 1st line
+		file read `lsin' thisfile // is this OK? it will overwrite the thisfile local
+		while substr("`thisname'",1,2)!="SD" { // this SD* is not true for all Stata-OS combinations
+			file read `lsin' thisname
+			if lower("$S_OS")=="windows" {
+				local thisfile "`tdir'\`thisname'"
+			}
+			else {
+				local thisfile "`tdir'/`thisname'"
+			}
+			if r(eof)==1 {
+				dis as error "Could not locate a do-file in the Stata temporary folder."
+				dis as error "Try giving the path and file name with the 'thisfile' option"
+				capture file close `lsin'
+				error 1
+			}
+		}
+		capture file close `lsin'
+	}
+	tempname fin
+	capture file close `fin'
+	file open `fin' using "`thisfile'" , read text
+	file read `fin' line
+
+	tokenize `"`line'"'
+	local line1=`"`1'"'
+	file read `fin' line
+	tokenize `"`line'"'
+	while (("`line1'"!="/*" | substr(`"`1'"',1,4)!="data") & !r(eof)) {
+		local line1="`1'"
+		file read `fin' line
+		tokenize `"`line'"'
+	}
+	if r(eof) {
+		dis as error "Model command not found"
+		capture file close `fin'
+		error 1
+	}
+
+	tempname fout
+	capture file close `fout'
+	file open `fout' using "`modelfile'" , write replace
+	file write `fout' "`line'" _n
+	file read `fin' line
+	while ("`line'"!="*/") {
+		file write `fout' "`line'" _n
+		file read `fin' line
+	}
+	file close `fin'
+	file close `fout'
+}
+
 
 // write data file in R/S format
 
-// first, the data 'file'
+// first, write out the data in Stata's memory
 // this can only cope with scalars (n=1) and vectors; matrices & globals are named in the option
+file open dataf using `datafile', write text replace
 foreach v of local varlist {
 	confirm numeric variable `v'
 	local linenum=1
@@ -271,7 +346,18 @@ restore
 // call CmdStan - move to cmdstandir
 if lower("$S_OS")=="windows" {
 	cd "`cdir'"
-	shell copy "`wdir'\\`modelfile'" "`cdir'\\`modelfile'"
+	// check if modelfile already exists in cdir
+	confirm file "`cdir'\\`modelfile'"
+	if !_rc {
+		tempfile working
+		shell fc /lb2 "`wdir'\\`modelfile'" "`cdir'\\`modelfile'" > "`working'"
+// BUT I'M WORRIED THE PATH IN working NEEDS BACKSLASH-ESCAPING
+// TEST AND COMPLETE THIS ON A WINDOWS MACHINE
+		// if different shell copy "`wdir'\\`modelfile'" "`cdir'\\`modelfile'"
+	}
+	else {
+		shell copy "`wdir'\\`modelfile'" "`cdir'\\`modelfile'"
+	}
 	dis as result "###############################"
 	dis as result "###  Output from compiling  ###"
 	dis as result "###############################"
@@ -358,6 +444,22 @@ if lower("$S_OS")=="windows" {
 }
 else {
 	cd "`cdir'"
+	// check if modelfile already exists in cdir
+	confirm file "`cdir'/`modelfile'"
+	if !_rc {
+		tempfile working
+		shell diff -b "`wdir'/`modelfile'" "`cdir'/`modelfile'" > "`working'"
+		tempname wrk
+		file open `wrk' using "`working'", read text
+		file read `wrk' line
+		if "`line'" !="" {
+			shell copy "`wdir'/`modelfile'" "`cdir'/`modelfile'"
+		}
+	}
+	else {
+		shell copy "`wdir'/`modelfile'" "`cdir'/`modelfile'"
+	}
+
 	shell cp "`wdir'/`modelfile'" "`cdir'/`modelfile'"
 	dis as result "###############################"
 	dis as result "###  Output from compiling  ###"
