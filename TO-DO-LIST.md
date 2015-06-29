@@ -4,10 +4,8 @@ Known problems
 
 To-do list
 ---------------
-* TEST examples with John Thompson's and Charles Opondo's inline model techniques
-* FIX Windows stuff like "`wdir'\\`modelfile'" in load & diagnose code
 * ADD comparison of modelfile in wdir & cdir to avoid re-compiling
-* THEN LATER...
+* WRITE Stata .sthlp
 * ADD return stuff like means, 95%CIs, medians and modes
 * ADD capacity to write initial values from Stata
 * ADD stepsize
@@ -21,6 +19,9 @@ To-do list
 * ADD another command that loads chains after the sampling has happened with -nochainfile- or from someone else's Stan output file
 * ADD capacity to write arrays of various forms... but Stata doesn't have such structures
 * CONSIDER How to avoid piping the output to a file and then displaying that in Windows, which means one has to wait for sampling to finish, and have no idea of progress. It would be nice to provide wintee in some form; see https://code.google.com/p/wintee/
-* CONSIDER a compiled line-copying program that reduces output chains without having to go via Stata.
+* CONSIDER a compiled line-copying program that reduces output chains without having to go via Stata (though this is not a problem for speed so far)
 * CONSIDER whether cmdstandir can be set permanently in Stata
 * CONSIDER posting means and covariance matrix to e() but I'm not sure what the value of this would be. Could it tempt people into doing strange amalgams of Bayesian model + post-estimation Wald tests?
+* AFTER BETA-TESTING:
+* Make into Stata package
+*
