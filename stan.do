@@ -17,8 +17,8 @@ syntax varlist [if] [in] [, DATAfile(string) MODELfile(string) ///
 		"data {" and this will be written out as the model
 	inline: read in the model from a comment block in this do-file
 	thisfile: optional, to use with inline; gives the path and name of the
-		current active do-file, used to locate the model inline. If 
-		thisfile is omitted, Stata will look at the most recent SD* 
+		current active do-file, used to locate the model inline. If
+		thisfile is omitted, Stata will look at the most recent SD*
 		file in c(tmpdir)
 	initsfile: name of initial values file in R/S that you have already saved
 	load: read iterations into Stata
@@ -59,14 +59,14 @@ local cdir="`cmdstandir'"
 	}
 }*/
 
-// defaults 
+// defaults
 if "`datafile'"=="" {
 	local datafile="statastan_data.R"
 }
 if "`modelfile'"=="" {
 	local modelfile="statastan_model.stan"
 }
-/* we assume the modelfile ends ".stan" (CmdStan requires this) because we 
+/* we assume the modelfile ends ".stan" (CmdStan requires this) because we
 	will chop the last 5 chars off to make the execfile name */
 if "`initsfile'"=="" {
 	local initlocation=1
@@ -136,7 +136,7 @@ if "`skipmissing'"!="skipmissing" {
 	foreach v of local varlist {
 		qui count if `v'!=.
 		local nthisvar=r(N)
-		qui drop if `v'==. & `nthisvar'>1 
+		qui drop if `v'==. & `nthisvar'>1
 	}
 }
 
@@ -150,19 +150,20 @@ capture noisily {
 // inline (John Thompson's approach) model written to .stan file
 if "`inline'"!="" {
 	tempname fin
+	tempfile tdirls
 	local tdir=c(tmpdir)
 	// fetch temp do-file copy if no thisfile has been named
 	if "`thisfile'"=="" {
 		tempname lsin
 		if lower("$S_OS")=="windows" {
-			shell dir `tdir' -b -o:-D >> tdir-ls // check this works!
+			shell dir `tdir' -b -o:-D >> `tdirls' // check this works!
 		}
 		else {
-			shell ls `tdir' -t >>  tdir-ls
+			shell ls `tdir' -t >>  `tdirls'
 		}
 		tempname lsin
 		capture file close `lsin'
-		file open `lsin' using "tdir-ls", read text 
+		file open `lsin' using `tdirls', read text
 		// assumes there's nothing else on the 1st line
 		file read `lsin' thisfile // is this OK? it will overwrite the thisfile local
 		while substr("`thisname'",1,2)!="SD" { // this SD* is not true for all Stata-OS combinations
@@ -181,6 +182,7 @@ if "`inline'"!="" {
 			}
 		}
 		capture file close `lsin'
+		
 	}
 	tempname fin
 	capture file close `fin'
@@ -257,7 +259,7 @@ foreach v of local varlist {
 					file write dataf "`linedata', "
 				}
 				else {
-					file write dataf "`linedata')" _n 
+					file write dataf "`linedata')" _n
 				}
 			}
 		}
@@ -374,7 +376,7 @@ if lower("$S_OS")=="windows" {
 	shell "bin\print.exe" "`outputfile'" > "`winlogfile'" 2>&1
 	type "`winlogfile'"
 	// reduce csv file
-	file open ofile using "`wdir'\\`outputfile'", read 
+	file open ofile using "`wdir'\\`outputfile'", read
 	file open rfile using "`wdir'\\`chainfile'", write text replace
 	capture noisily {
 	file read ofile oline
@@ -384,7 +386,7 @@ if lower("$S_OS")=="windows" {
 			local firstchar=substr("`oline'",1,1)
 			if "`firstchar'"!="#" {
 				file write rfile "`oline'" _n
-			} 
+			}
 		}
 		file read ofile oline
 	}
@@ -399,7 +401,7 @@ if lower("$S_OS")=="windows" {
 		shell "`cdir'\\`execfile'" optimize data file="`wdir'\\`datafile'" output file="`wdir'\\`outputfile'" > "`winlogfile'" 2>&1
 		type "`winlogfile'"
 		// extract mode and lp__ from output.csv
-		file open ofile using "`wdir'\\`outputfile'", read 
+		file open ofile using "`wdir'\\`outputfile'", read
 		file open mfile using "`wdir'\\`modesfile'", write text replace
 		capture noisily {
 		file read ofile oline
@@ -408,7 +410,7 @@ if lower("$S_OS")=="windows" {
 				local firstchar=substr("`oline'",1,1)
 				if "`firstchar'"!="#" {
 					file write mfile "`oline'" _n
-				} 
+				}
 			}
 			file read ofile oline
 		}
@@ -475,7 +477,7 @@ else {
 	shell bin/print "`wdir'/`outputfile'"
 	
 	// reduce csv file
-	file open ofile using "`wdir'/`outputfile'", read 
+	file open ofile using "`wdir'/`outputfile'", read
 	file open rfile using "`wdir'/`chainfile'", write text replace
 	capture noisily {
 	file read ofile oline
@@ -484,7 +486,7 @@ else {
 			local firstchar=substr("`oline'",1,1)
 			if "`firstchar'"!="#" {
 				file write rfile "`oline'" _n
-			} 
+			}
 		}
 		file read ofile oline
 	}
@@ -498,7 +500,7 @@ else {
 		dis as result "#############################################"
 		shell "`cdir'/`execfile'" optimize data file="`wdir'/`datafile'" output file="`wdir'/`outputfile'"
 		// extract mode and lp__ from output.csv
-		file open ofile using "`wdir'/`outputfile'", read 
+		file open ofile using "`wdir'/`outputfile'", read
 		file open mfile using "`wdir'/`modesfile'", write text replace
 		capture noisily {
 		file read ofile oline
@@ -507,7 +509,7 @@ else {
 				local firstchar=substr("`oline'",1,1)
 				if "`firstchar'"!="#" {
 					file write mfile "`oline'" _n
-				} 
+				}
 			}
 			file read ofile oline
 		}
