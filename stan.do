@@ -1,3 +1,78 @@
+capture program drop windowsmonitor
+program define windowsmonitor
+syntax ,COMMAND(string asis) [ WINLOGfile(string asis) waitsecs(integer 10) ]
+
+// default winlogfile
+if ("`winlogfile'"=="") {
+	tempfile winlogfile
+}
+else {
+	// delete any existing winlogfile
+	! del "`winlogfile'"
+}
+
+// construct batch file
+tempfile wmbatch
+capture file close sb
+capture noisily { // to ensure files are closed
+//	file open sb using "`wmbatch'", write text replace
+	file open sb using "wmbatch.bat", write text replace
+
+	file write sb `"`macval(command)'"' _n
+	file write sb "echo Finished!" _n
+}
+capture file close sb
+
+// issue command, piping output to winlogfile
+//winexec "`wmbatch'" > "`winlogfile'"
+winexec "wmbatch.bat" > "`winlogfile'"
+
+// wait up to waitsecs seconds for winlogfile to appear
+local loopcount=0
+capture confirm file "`winlogfile'"
+while _rc & (`loopcount'<`waitsecs') {
+	sleep 1000
+	capture confirm file "`winlogfile'"
+	local ++loopcount
+}
+if _rc {
+	dis as error "No output detected from Windows after `waitsecs' seconds"
+	error 601
+}
+	
+// start reading from winlogfile
+capture file close sout
+capture noisily { // to ensure files are closed
+file open sout using "`winlogfile'", read text
+local linecount=0
+while("`macval(lastline)'"!="Finished!") {
+    sleep 2000
+	// display everything after the linecount-th line
+	file seek sout 0
+	file read sout line
+	local newlinecount=1
+	if `newlinecount'>`linecount' {
+		dis as result "`macval(line)'"
+	}
+	while r(eof)==0 {
+		file read sout line
+		if r(eof)==0 {
+			local ++newlinecount
+			if `newlinecount'>`linecount' {
+				dis as result "`macval(line)'"
+			}
+			local lastline="`macval(line)'"
+		}
+	}
+	local linecount=`newlinecount'
+}
+}
+capture file close sout
+end
+
+
+
+
 capture program drop stan
 
 program define stan
@@ -99,6 +174,7 @@ local lenmod=length("`modelfile'")-5
 local execfile=substr("`modelfile'",1,`lenmod')
 if lower("$S_OS")=="windows" {
 	local execfile="`execfile'"+".exe"
+	local cppfile="`execfile'"+".hpp"
 }
 // strings to insert into shell command
 if `seed'==(-1) {
@@ -140,9 +216,6 @@ if "`skipmissing'"!="skipmissing" {
 	}
 }
 
-
-qui count
-local nobs=r(N)
 
 // the capture block ensures the file handles are closed at the end, no matter what
 capture noisily {
@@ -345,51 +418,59 @@ if "`globals'"!="" {
 file close dataf
 restore
 
-// call CmdStan - move to cmdstandir
+
+/*#############################################################
+######################## Windows code #########################
+#############################################################*/
 if lower("$S_OS")=="windows" {
-	cd "`cdir'"
 	// check if modelfile already exists in cdir
 	confirm file "`cdir'\\`modelfile'"
 	if !_rc {
+		// check they are different before copying and compiling
 		tempfile working
-		shell fc /lb2 "`wdir'\\`modelfile'" "`cdir'\\`modelfile'" > "`working'"
-// BUT I'M WORRIED THE PATH IN working NEEDS BACKSLASH-ESCAPING
-// TEST AND COMPLETE THIS ON A WINDOWS MACHINE
+		shell fc /lb2 "`wdir'\`modelfile'" "`cdir'\`modelfile'" > "`working'"
 		// if different shell copy "`wdir'\\`modelfile'" "`cdir'\\`modelfile'"
 	}
 	else {
-		shell copy "`wdir'\\`modelfile'" "`cdir'\\`modelfile'"
+		windowsmonitor, command(copy "`wdir'\`modelfile'" "`cdir'\`modelfile'") ///
+			winlogfile(`winlogfile') waitsecs(30)
 	}
+! copy "`cdir'\`winlogfile'" "`wdir'\winlog1"
+	cd "${cdir}"
 	dis as result "###############################"
 	dis as result "###  Output from compiling  ###"
 	dis as result "###############################"
-	shell make "`execfile'" > "`winlogfile'"
-	type "`winlogfile'"
+	windowsmonitor, command(make `execfile') winlogfile(`winlogfile') waitsecs(30)
 	// leave modelfile in cdir so make can check need to re-compile
-	// shell del "`cdir'\`modelfile'"
+! copy `cdir'\`winlogfile' `wdir'
+	! copy "`cdir'\`cppfile'" "`wdir'\`cppfile'"
+	! copy "`cdir'\`execfile'" "`wdir'\`execfile'"
 
 	dis as result "##############################"
 	dis as result "###  Output from sampling  ###"
 	dis as result "##############################"
-	shell "`cdir'\\`execfile'" sample`warmcom'`itercom'`thincom'`seedcom' data file="`wdir'\\`datafile'" output file="`wdir'\\`outputfile'" > "`winlogfile'" 2>&1
-	type "`winlogfile'"
-	shell "bin\print.exe" "`outputfile'" > "`winlogfile'" 2>&1
-	type "`winlogfile'"
+	windowsmonitor, command(`cdir'\\`execfile' sample`warmcom'`itercom'`thincom'`seedcom' data file=`wdir'\\`datafile' output file=`wdir'\\`outputfile') ///
+		winlogfile("`wdir'\\`winlogfile'") waitsecs(30)
+! copy "`cdir'\`winlogfile'" "`wdir'\winlog3"
+	! copy "`cdir'\`outputfile'" "`wdir'\`outputfile'"
+
+	windowsmonitor, command(bin\print.exe `outputfile') winlogfile(`winlogfile') waitsecs(30)
+
 	// reduce csv file
 	file open ofile using "`wdir'\\`outputfile'", read
 	file open rfile using "`wdir'\\`chainfile'", write text replace
 	capture noisily {
-	file read ofile oline
-	while r(eof)==0 {
-		//dis as result "`oline'" // for debuggin'
-		if length("`oline'")!=0 {
-			local firstchar=substr("`oline'",1,1)
-			if "`firstchar'"!="#" {
-				file write rfile "`oline'" _n
-			}
-		}
 		file read ofile oline
-	}
+		while r(eof)==0 {
+			//dis as result "`oline'" // for debuggin'
+			if length("`oline'")!=0 {
+				local firstchar=substr("`oline'",1,1)
+				if "`firstchar'"!="#" {
+					file write rfile "`oline'" _n
+				}
+			}
+			file read ofile oline
+		}
 	}
 	file close ofile
 	file close rfile
@@ -398,22 +479,23 @@ if lower("$S_OS")=="windows" {
 		dis as result "#############################################"
 		dis as result "###  Output from optimizing to find mode  ###"
 		dis as result "#############################################"
-		shell "`cdir'\\`execfile'" optimize data file="`wdir'\\`datafile'" output file="`wdir'\\`outputfile'" > "`winlogfile'" 2>&1
-		type "`winlogfile'"
+		windowsmonitor, command(`cdir'\\`execfile' optimize data file=`wdir'\\`datafile' output file=`wdir'\\`outputfile') ///
+			winlogfile(`winlogfile') waitsecs(30)
+
 		// extract mode and lp__ from output.csv
 		file open ofile using "`wdir'\\`outputfile'", read
 		file open mfile using "`wdir'\\`modesfile'", write text replace
 		capture noisily {
-		file read ofile oline
-		while r(eof)==0 {
-			if length("`oline'")!=0 {
-				local firstchar=substr("`oline'",1,1)
-				if "`firstchar'"!="#" {
-					file write mfile "`oline'" _n
-				}
-			}
 			file read ofile oline
-		}
+			while r(eof)==0 {
+				if length("`oline'")!=0 {
+					local firstchar=substr("`oline'",1,1)
+					if "`firstchar'"!="#" {
+						file write mfile "`oline'" _n
+					}
+				}
+				file read ofile oline
+			}
 		}
 		file close ofile
 		file close mfile
@@ -439,29 +521,36 @@ if lower("$S_OS")=="windows" {
 		dis as result "#################################"
 		dis as result "###  Output from diagnostics  ###"
 		dis as result "#################################"
-		shell "`cdir'\\`execfile'" diagnose data file="`wdir'\\`datafile'" > "`winlogfile'" 2>&1
-		type "`winlogfile'"
+		windowsmonitor, command(`cdir'\\`execfile' diagnose data file=`wdir'\\`datafile') ///
+			winlogfile("`wdir'\\`winlogfile'") waitsecs(30)
 	}
 	cd "`wdir'"
 }
+
+/*#######################################################
+#################### Linux / Mac code ###################
+#######################################################*/
 else {
-	cd "`cdir'"
+//	cd "`cdir'"
 	// check if modelfile already exists in cdir
 	confirm file "`cdir'/`modelfile'"
 	if !_rc {
+		// check they are different before copying and compiling
 		tempfile working
 		shell diff -b "`wdir'/`modelfile'" "`cdir'/`modelfile'" > "`working'"
 		tempname wrk
 		file open `wrk' using "`working'", read text
 		file read `wrk' line
 		if "`line'" !="" {
+			// NOT NEEDED NOW WORKING ENTIRELY FROM WDIR?:
 			shell copy "`wdir'/`modelfile'" "`cdir'/`modelfile'"
 		}
 	}
 	else {
+		// NOT NEEDED NOW WORKING ENTIRELY FROM WDIR?:
 		shell copy "`wdir'/`modelfile'" "`cdir'/`modelfile'"
 	}
-
+	// NOT NEEDED NOW WORKING ENTIRELY FROM WDIR?:
 	shell cp "`wdir'/`modelfile'" "`cdir'/`modelfile'"
 	dis as result "###############################"
 	dis as result "###  Output from compiling  ###"
@@ -480,16 +569,16 @@ else {
 	file open ofile using "`wdir'/`outputfile'", read
 	file open rfile using "`wdir'/`chainfile'", write text replace
 	capture noisily {
-	file read ofile oline
-	while r(eof)==0 {
-		if length("`oline'")!=0 {
-			local firstchar=substr("`oline'",1,1)
-			if "`firstchar'"!="#" {
-				file write rfile "`oline'" _n
-			}
-		}
 		file read ofile oline
-	}
+		while r(eof)==0 {
+			if length("`oline'")!=0 {
+				local firstchar=substr("`oline'",1,1)
+				if "`firstchar'"!="#" {
+					file write rfile "`oline'" _n
+				}
+			}
+			file read ofile oline
+		}
 	}
 	file close ofile
 	file close rfile
@@ -503,16 +592,16 @@ else {
 		file open ofile using "`wdir'/`outputfile'", read
 		file open mfile using "`wdir'/`modesfile'", write text replace
 		capture noisily {
-		file read ofile oline
-		while r(eof)==0 {
-			if length("`oline'")!=0 {
-				local firstchar=substr("`oline'",1,1)
-				if "`firstchar'"!="#" {
-					file write mfile "`oline'" _n
-				}
-			}
 			file read ofile oline
-		}
+			while r(eof)==0 {
+				if length("`oline'")!=0 {
+					local firstchar=substr("`oline'",1,1)
+					if "`firstchar'"!="#" {
+						file write mfile "`oline'" _n
+					}
+				}
+				file read ofile oline
+			}
 		}
 		file close ofile
 		file close mfile
