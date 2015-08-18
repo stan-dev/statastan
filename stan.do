@@ -45,23 +45,23 @@ capture file close sout
 capture noisily { // to ensure files are closed
 file open sout using "`winlogfile'", read text
 local linecount=0
-while("`macval(lastline)'"!="Finished!") {
+while(`"`macval(lastline)'"'!="Finished!") {
     sleep 2000
 	// display everything after the linecount-th line
 	file seek sout 0
 	file read sout line
 	local newlinecount=1
 	if `newlinecount'>`linecount' {
-		dis as result "`macval(line)'"
+		dis as result `"`macval(line)'"'
 	}
 	while r(eof)==0 {
 		file read sout line
 		if r(eof)==0 {
 			local ++newlinecount
 			if `newlinecount'>`linecount' {
-				dis as result "`macval(line)'"
+				dis as result `"`macval(line)'"'
 			}
-			local lastline="`macval(line)'"
+			local lastline=`"`macval(line)'"'
 		}
 	}
 	local linecount=`newlinecount'
@@ -239,7 +239,13 @@ if "`inline'"!="" {
 		file open `lsin' using `tdirls', read text
 		// assumes there's nothing else on the 1st line
 		file read `lsin' thisfile // is this OK? it will overwrite the thisfile local
-		while substr("`thisname'",1,2)!="SD" { // this SD* is not true for all Stata-OS combinations
+		if lower("$S_OS")=="windows" {
+			local tempprefix="STD"
+		}
+		else {
+			local tempprefix="SD"
+		}
+		while substr("`thisname'",1,2)!="`tempprefix'" { 
 			file read `lsin' thisname
 			if lower("$S_OS")=="windows" {
 				local thisfile "`tdir'\`thisname'"
@@ -424,23 +430,23 @@ restore
 #############################################################*/
 if lower("$S_OS")=="windows" {
 	// check if modelfile already exists in cdir
-	confirm file "`cdir'\\`modelfile'"
+	capture confirm file "`cdir'\\`modelfile'"
 	if !_rc {
 		// check they are different before copying and compiling
 		tempfile working
-		shell fc /lb2 "`wdir'\`modelfile'" "`cdir'\`modelfile'" > "`working'"
+		shell fc /lb2 "`wdir'\\`modelfile'" "`cdir'\\`modelfile'" > "`working'"
 		// if different shell copy "`wdir'\\`modelfile'" "`cdir'\\`modelfile'"
 	}
 	else {
-		windowsmonitor, command(copy "`wdir'\`modelfile'" "`cdir'\`modelfile'") ///
+		windowsmonitor, command(copy "`wdir'\\`modelfile'" "`cdir'\\`modelfile'") ///
 			winlogfile(`winlogfile') waitsecs(30)
 	}
 ! copy "`cdir'\`winlogfile'" "`wdir'\winlog1"
-	cd "${cdir}"
+	cd "`cdir'"
 	dis as result "###############################"
 	dis as result "###  Output from compiling  ###"
 	dis as result "###############################"
-	windowsmonitor, command(make `execfile') winlogfile(`winlogfile') waitsecs(30)
+	windowsmonitor, command(make "`execfile'") winlogfile(`winlogfile') waitsecs(30)
 	// leave modelfile in cdir so make can check need to re-compile
 ! copy `cdir'\`winlogfile' `wdir'
 	! copy "`cdir'\`cppfile'" "`wdir'\`cppfile'"
@@ -450,7 +456,7 @@ if lower("$S_OS")=="windows" {
 	dis as result "###  Output from sampling  ###"
 	dis as result "##############################"
 	windowsmonitor, command(`cdir'\\`execfile' sample`warmcom'`itercom'`thincom'`seedcom' data file=`wdir'\\`datafile' output file=`wdir'\\`outputfile') ///
-		winlogfile("`wdir'\\`winlogfile'") waitsecs(30)
+		winlogfile(`winlogfile') waitsecs(30)
 ! copy "`cdir'\`winlogfile'" "`wdir'\winlog3"
 	! copy "`cdir'\`outputfile'" "`wdir'\`outputfile'"
 
@@ -531,9 +537,8 @@ if lower("$S_OS")=="windows" {
 #################### Linux / Mac code ###################
 #######################################################*/
 else {
-//	cd "`cdir'"
 	// check if modelfile already exists in cdir
-	confirm file "`cdir'/`modelfile'"
+	capture confirm file "`cdir'/`modelfile'"
 	if !_rc {
 		// check they are different before copying and compiling
 		tempfile working
@@ -542,16 +547,14 @@ else {
 		file open `wrk' using "`working'", read text
 		file read `wrk' line
 		if "`line'" !="" {
-			// NOT NEEDED NOW WORKING ENTIRELY FROM WDIR?:
 			shell copy "`wdir'/`modelfile'" "`cdir'/`modelfile'"
 		}
 	}
 	else {
-		// NOT NEEDED NOW WORKING ENTIRELY FROM WDIR?:
 		shell copy "`wdir'/`modelfile'" "`cdir'/`modelfile'"
 	}
-	// NOT NEEDED NOW WORKING ENTIRELY FROM WDIR?:
 	shell cp "`wdir'/`modelfile'" "`cdir'/`modelfile'"
+	cd "`cdir'"
 	dis as result "###############################"
 	dis as result "###  Output from compiling  ###"
 	dis as result "###############################"

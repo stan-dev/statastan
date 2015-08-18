@@ -9,9 +9,7 @@ StataStan exists in an alpha-testing form, as a single stan.do file. We invite a
 
 Once it has passed testing on all major platforms, it will move to a beta-testing form as .ado and .hlp files. Finally, it will move entirely to a master and develop branch, as with other stan-dev repos, and will be submitted to [SSC](https://ideas.repec.org/s/boc/bocode.html).
 
-There is a single command, -stan-, which will fit a Stan model by Hamiltonian Monte Carlo. You can also ask for the posterior mode, which is found by optimization with the BFGS (or L-BFGS) algorithm. Further options will be added, allowing you to choose sampling algorithms, specify stepsize etc. Then, there will be other Stata commands, allowing CODA-style diagnostics and plotting after a model has been fitted and chains stored. Also, we intend to provide individual 'template' commands for common models such as are supplied in the Stan examples and manual. The aim of this is to make an introduction to using Stan for fast, flexible Bayesian modeling as easy as possible for Stata users.
-
-We also want to make some simple commands to fit specific models, so that you could type something like:
+There is a single command, -stan-, which will fit a Stan model by Hamiltonian Monte Carlo. You can also ask for the posterior mode, which is found by optimization with the BFGS (or L-BFGS) algorithm. Further options will be added, allowing you to choose sampling algorithms, specify stepsize etc. Then, there will be other Stata commands, allowing CODA-style diagnostics and plotting after a model has been fitted and chains stored. Also, we intend to provide individual 'template' commands for common models such as are supplied in the Stan examples and manual. The aim of this is to make an introduction to using Stan for fast, flexible Bayesian modeling as easy as possible for Stata users, so that you could type something like:
 
     stanxtmelogit alive i.heartattacktype delay, priors(norm(10 10)) || hospital, re(gaussian) priors(unif(0.1 50))
 
@@ -21,7 +19,7 @@ Getting Started
 ----------------
 1. Download and install [CmdStan](http://mc-stan.org/cmdstan.html). Make sure you read the installation instructions and platform-specific appendix before installing. In particular, _if you are using 32-bit Windows_, you will need to add a file called 'local' to the 'make' folder before you run the *make* command, which should simply contain the text: *BIT=32*
 1. Download and -do- stan.do, either from your do-file editor or the command line
-1. Try out the stan-example.do file
+1. Try out the different examples in the stan-example.do file
 1. Try your own data and model. The Stan modelling manual is essential reading here!
 1. You can pass your current data (the stuff you see when you type *browse* in Stata) into Stan, but also you can send matrices and global macros, by specifying their names or typing 'all' in the *matrices* and *globals* options. Unlike BUGS / JAGS, Stan just ignores data that your model doesn't use.
 
@@ -30,7 +28,7 @@ Options
 * datafile(_filename_): name to write data into in R/S format (in working dir)
 * modelfile(_filename_): name of Stan model (that you have already saved), which must end in .stan
 * inline: read in the model from a comment block in your current do-file. If you specify modelfile, that name will be given to the model when it is saved, and again it must end with .stan
-* thisfile: optional, to use with inline; gives the path and name of the current active do-file, used to locate the model inline. If thisfile is omitted, Stata will look at the most recent SD* file in c(tmpdir). This should work most of the time but other processes running on your computer could interfere with c(tmpdir). See the stan-example.do file for our preferred method for inline model code.
+* thisfile: optional, to use with inline; gives the path and name of the current active do-file, used to locate the model inline. If thisfile is omitted, Stata will look at the most recent SD (Linux/Mac) or STD (Windows) file in c(tmpdir). This should work most of the time but other processes running on your computer could interfere with c(tmpdir). See the stan-example.do file for our preferred method for inline model code.
 * initsfile(_filename_): name of initial values file in R/S that you have already saved
 * load: read iterations into Stata
 * diagnose: run gradient diagnostics
@@ -51,25 +49,16 @@ Options
 
 Testing
 -----------------
-StataStan has been tested with:
-* CmdStan 2.6.2
+StataStan has been tested with CmdStan 2.6.2 and 2.7.0, Stata versions from 11.2 to 14.0, and Stata flavors IC and SE. We have not added multicore capacity yet, but it is on the to-do list and is easy to do (see Stan manual).
 
-and Stata versions / flavors:
-* 11.2/IC
-* 13.1/SE
-
-with operating systems:
-* Debian Wheezy Linux (LXDE)
-* Windows Vista 32-bit
-
-We would love to hear from any Stata users with other operating systems and older versions of Stata
+It seems very stable on Linux and Windows, but we need some feedback from Mac users (please), and we'd love to hear if it works with Windows 10 or older versions of Stata.
 
 Other notes
 ---------------
-* The executable file and .hpp remains under cdir
+* A copy of your .stan, .hpp and executable files remain under the CmdStan directory. This helps avoid unnecessary re-compiling, but you might want to clear them out from time to time. The .stan file gets copied into your working directory, and the data and output files get moved there.
 * Non-existent globals and matrices, and non-numeric globals, get quietly ignored
-* Missing values are removed casewise by default
-* Users need to take care not to leave output file names as defaults if they have anything called output.csv or modes.csv etc. - these files will be overwritten
+* Missing values are removed casewise by default (but you can change this)
+* Users need to take care not to leave output file names as defaults if they have anything precious called output.csv or modes.csv etc. - these files will be overwritten
 
 Licensing
 ---------
