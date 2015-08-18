@@ -38,7 +38,7 @@ Options
 * modesfile(_filename_): CSV file to contain posterior modes and BFGS log-probs
   * Careful not to mix this up with modelfile!
 * chainfile(_filename_): name of CSV file to contain chain (trimmed version of output.csv); to support parallel processing, numbers will be added to this (but not yet)
-* winlogfile(_filename_): in Windows, where to store stdout & stderr before displaying on the screen (but see to-do list)
+* winlogfile(_filename_): in Windows, where to store stdout & stderr before displaying on the screen (you can safely ignore this; it is only used during execution but if you have something called winlog.txt, that will be overwritten!)
 * seed(_integer_): RNG seed
 * warmup(_integer_): number of warmup (burn-in) steps, default 1000
 * iter(_integer_): number of samples to retain after warmup, default 1000
@@ -53,7 +53,7 @@ Testing
 -----------------
 StataStan has been tested with CmdStan 2.6.2 and 2.7.0, Stata versions from 11.2 to 14.0, and Stata flavors IC and SE. We have not added multicore capacity yet, but it is on the to-do list and is easy to do (see Stan manual).
 
-It seems very stable on Linux and Windows, but we need some feedback from Mac users (please), and we'd love to hear if it works with Windows 10 or older versions of Stata.
+It seems very stable on Linux and Windows, but we need more feedback from Mac users (please), and we'd love to hear if it works with Windows 10 or older versions of Stata.
 
 Other notes
 ---------------
