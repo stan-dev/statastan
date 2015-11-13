@@ -15,7 +15,7 @@ As of September 2015, there are some basic issues to fix and then the commands w
 
 Getting Started
 ----------------
-1. Download and install [CmdStan](http://mc-stan.org/cmdstan.html). Make sure you read the installation instructions and platform-specific appendix before installing. In particular, _if you are using 32-bit Windows_, you will need to add a file called 'local' to the 'make' folder before you run the *make* command, which should simply contain the text: *BIT=32*
+1. Download and install [CmdStan](http://mc-stan.org/interfaces/cmdstan.html). Make sure you read the installation instructions and platform-specific appendix before installing. In particular, _if you are using 32-bit Windows_, you will need to add a file called 'local' to the 'make' folder before you run the *make* command, which should simply contain the text: *BIT=32*
 1. Download the .ado and.sthlp files and save them in your Stata personal ado folder (click [here](http://www.stata.com/support/faqs/programming/personal-ado-directory/) if you don't know where this is)
 1. Try out the different examples in the stan-example.do file, or under **help stan**
 1. Try your own data and model. The Stan modelling manual is essential reading for this! Options are listed in detail under **help stan**.
