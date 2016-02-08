@@ -38,7 +38,10 @@
 {title:Description}
 
 {pstd}
-Windows unfortunately does not stream the outputs from command-line activity (technically, the stdout and stderr streams) in such a way that they can appear inside Stata. When running a {cmd:winexec} command, Stata waits for the process launched by the command to terminate before proceeding, and only then will all the output appear inside Stata. If the command is time-consuming (such as calling CmdStan, which was the inspiration for this), not seeing progress can cause worry, or a waste of time, or undetected problems. {cmd:windowsmonitor} is a work-around for this problem, which pipes the output to a text file, checks that file every 2 seconds and displays anything new in it.
+Windows unfortunately does not stream the outputs from command-line activity (technically, the stdout and stderr streams) in such a way that they can appear inside Stata. 
+When running a {cmd:winexec} command, Stata waits for the process launched by the command to terminate before proceeding, and only then will all the output appear inside Stata. 
+If the command is time-consuming (such as calling CmdStan, which was the inspiration for this), not seeing progress can cause worry, or a waste of time, or undetected problems. 
+{cmd:windowsmonitor} is a work-around for this problem, which pipes the output to a text file, checks that file every 2 seconds and displays anything new in it.
 
 
 {marker options}{...}

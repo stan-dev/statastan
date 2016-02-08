@@ -56,16 +56,23 @@
 {title:Description}
 
 {pstd}
-{cmd:stan} is the Stata interface to the open-source Bayesian software Stan, which works by translating a simple model language to C++ and compiling that. Stan utilises Hamiltonian Monte Carlo through the No U-Turn Sampler (NUTS) to provide much faster and more stable sampling than could be achieved with the Metropolis-Hastings algorithm or the Gibbs sampler (these are the methods implemented in BUGS, JAGS and {cmd:bayesmh}). In keeping with other Stan interfaces, it is known as StataStan when regarded as a package along with {help windowsmonitor} and the various {cmd:stan_*} commands to populate specific models. In essence, it is a wrapper for the CmdStan command-line interface. Data and results are passed between Stata and Stan via text files.
+{cmd:stan} is the Stata interface to the open-source Bayesian software Stan, which works by translating a simple model language to C++ and compiling that. 
+Stan utilises Hamiltonian Monte Carlo through the No U-Turn Sampler (NUTS) to provide much faster and more stable sampling than could be achieved with the Metropolis-Hastings algorithm or the Gibbs sampler (these are the methods implemented in BUGS, JAGS and {cmd:bayesmh}). 
+In keeping with other Stan interfaces, it is known as StataStan when regarded as a package along with {help windowsmonitor} and the various {cmd:stan_*} commands to populate specific models. 
+In essence, it is a wrapper for the CmdStan command-line interface. 
+Data and results are passed between Stata and Stan via text files.
 
 {pstd}
-To use {cmd:stan}, you will need to have CmdStan installed from http://mc-stan.org/interfaces/cmdstan.html where you will also find instructions on installation and checking that you can compile C++ programs. The Stan programming manual and quick-start guide is at http://mc-stan.org/documentation/
+To use {cmd:stan}, you will need to have CmdStan installed from http://mc-stan.org/interfaces/cmdstan.html where you will also find instructions on installation and checking that you can compile C++ programs. 
+The Stan programming manual and quick-start guide is at http://mc-stan.org/documentation/
 
 {pstd}
 If you are using {cmd:stan} on a Windows computer, you will need to install {cmd:windowsmonitor} too.
 
 {pstd}
-The variables listed in {it:varlist} will be sent to Stan, along with any global macros and matrices that are named in the relevant options. If the option {it:skipmissing} is included, missing data will be excluded observation-wise, which means that each variable becomes a vector containing only the non-missing values. This is potentially useful as a way of sending vectors of different lengths to Stan, but should be used with great caution if the current data contain missing values.
+The variables listed in {it:varlist} will be sent to Stan, along with any global macros and matrices that are named in the relevant options. 
+If the option {it:skipmissing} is included, missing data will be excluded observation-wise, which means that each variable becomes a vector containing only the non-missing values. 
+This is potentially useful as a way of sending vectors of different lengths to Stan, but should be used with great caution if the current data contain missing values.
 
 
 {marker options}{...}
@@ -131,7 +138,9 @@ The variables listed in {it:varlist} will be sent to Stan, along with any global
 {title:Remarks}
 
 {pstd}
-StataStan is maintained and collaboratively developed at https://github.com/stan-dev/statastan where you can find the latest versions and reports of issues that need to be fixed - and you can contribute improvements. The Stan developers are listed at http://mc-stan.org/team
+StataStan is maintained and collaboratively developed at https://github.com/stan-dev/statastan where you can find the latest versions 
+and reports of issues that need to be fixed - and you can suggest improvements. 
+The Stan developers are listed at http://mc-stan.org/team
 
 {pstd}
 There are four ways of passing the model to Stan. Opinions differ on whether it is preferable to have the model in a separate .stan file, or inside the do-file. These are shown in the examples below.
@@ -141,116 +150,120 @@ There are four ways of passing the model to Stan. Opinions differ on whether it 
 {marker examples}{...}
 {title:Examples}
 
-. // Bernoulli example:
-.
-. // make your data
-. clear
-. set obs 10
-. gen y=0
-. replace y=1 in 2
-. replace y=1 in 10
-. count
-. global N=r(N)
-.
-. // replace with your cmdstan folder's path
-. global cmdstandir "/root/cmdstan/cmdstan-2.6.2"
-.
-. // here we present four different ways of combining the Stan model with your do-file
-.
-. //##############################################
-. // Version 1: write a separate model file
-.
-. // call Stan, providing the modelfile option
-. stan y, modelfile("bernoulli.stan") cmd("$cmdstandir") globals("N")
-.
-. //###########################################
-.
-. /* Version 2: specify the model inline in a comment block, naming THIS do-file in the thisfile option */
-.
-. // here's the model:
-. /*
-. data {
-.   int<lower=0> N;
-.   int<lower=0,upper=1> y[N];
-. }
-. parameters {
-.   real<lower=0,upper=1> theta;
-. }
-. model {
-.   theta ~ beta(1,1);
-.   for (n in 1:N)
-.     y[n] ~ bernoulli(theta);
-. }
-. */
-.
-. // call Stan with the inline and thisfile options.
-. // modelfile now tells it where to save your model
-. stan y, inline thisfile("/root/git/statastan/stan-example.do") ///
-. 	modelfile("inline-bernoulli.stan") ///
-. 	cmd("$cmdstandir") globals("N") load mode
-.
-. //###############################################################
-.
-. /* Version 3: use the comment block, but don't provide thisfile - Stata
-.    will go looking for it in c(tmpdir), which saves you typing in the
-.    do-file name and path, but might not work sometimes */
-.
-. // here's the model:
-. /*
-. data {
-.   int<lower=0> N;
-.   int<lower=0,upper=1> y[N];
-. }}
-. parameters {
-.  real<lower=0,upper=1> theta;
-.}
-.model {
-.  theta ~ beta(1,1);
-.  for (n in 1:N)
-.    y[n] ~ bernoulli(theta);
-.}
-.*/
-.
-.stan y, inline modelfile("inline-bernoulli.stan") ///
-.	cmd("$cmdstandir") globals("N") load mode
-.
-.//###############################################################
-.
-./* Version 4: specify the model inline, so it is written to the
-. text file of your choosing but everything is controlled from the do-file */
-.
-.// make the data
-.clear
-.set obs 10
-.gen y=0
-.replace y=1 in 2
-.replace y=1 in 10
-.count
-.global N=r(N)
-.
-.// write the model from Stata into a plain text file
-.tempname writemodel
-.file open `writemodel' using "mystanmodel.stan", write replace
-.#delimit ;
-.foreach line in
-.	"data { "
-.	"  int<lower=0> N; "
-.	"  int<lower=0,upper=1> y[N];"
-.	"} "
-.	"parameters {"
-.	"  real<lower=0,upper=1> theta;"
-.	"} "
-.	"model {"
-.	"  theta ~ beta(1,1);"
-.	"  for (n in 1:N) "
-.	"    y[n] ~ bernoulli(theta);"
-.	"}"
-.{;
-.	#delimit cr
-.	file write `writemodel' "`line'" _n
-.}
-.file close `writemodel'
-.
-.// call Stan
-.stan y, modelfile("mystanmodel.stan") cmd("$cmdstandir") globals("N") load mode
-.
+// Bernoulli example:
+
+// make your data
+clear
+set obs 10
+gen y=0
+replace y=1 in 2
+replace y=1 in 10
+count
+global N=r(N)
+
+// replace with your cmdstan folder's path
+global cmdstandir "/root/cmdstan/cmdstan-2.6.2"
+
+// here we present four different ways of combining the Stan model with your do-file
+
+//##############################################
+// Version 1: write a separate model file
+
+/* call Stan, providing the modelfile option - no need to do anything else but you must 
+keep the .do and .stan files together for posterity */
+stan y, modelfile("bernoulli.stan") cmd("$cmdstandir") globals("N")
+
+//###########################################
+
+/* Version 2: specify the model inline in a comment block, naming THIS do-file in the 
+thisfile option (the John Thompson method, adopted from his commands for interfacing with BUGS) */
+
+// here's the model:
+/*
+data {
+  int<lower=0> N;
+  int<lower=0,upper=1> y[N];
+}
+parameters {
+  real<lower=0,upper=1> theta;
+}
+model {
+  theta ~ beta(1,1);
+  for (n in 1:N)
+    y[n] ~ bernoulli(theta);
+}
+*/
+
+// call Stan with the inline and thisfile options.
+// modelfile now tells it where to save your model
+stan y, inline thisfile("/root/git/statastan/stan-example.do") ///
+	modelfile("inline-bernoulli.stan") ///
+	cmd("$cmdstandir") globals("N") load mode
+
+//###############################################################
+
+/* Version 3: use the comment block, but don't provide thisfile - Stata
+   will go looking for it in c(tmpdir), which saves you typing in the
+   do-file name and path, but might not work sometimes if c(tmpdir) is crowded,
+   or especialy if you have more than one instance of Stata running */
+
+// here's the model:
+/*
+data {
+  int<lower=0> N;
+  int<lower=0,upper=1> y[N];
+}}
+parameters {
+  real<lower=0,upper=1> theta;
+}
+model {
+  theta ~ beta(1,1);
+  for (n in 1:N)
+    y[n] ~ bernoulli(theta);
+}
+*/
+
+stan y, inline modelfile("inline-bernoulli.stan") ///
+	cmd("$cmdstandir") globals("N") load mode
+
+//###############################################################
+
+/* Version 4: specify the model inline, so it is written to the
+ text file of your choosing but everything is controlled from the do-file 
+ (the Charles Opondo method) */
+
+// make the data
+clear
+set obs 10
+gen y=0
+replace y=1 in 2
+replace y=1 in 10
+count
+global N=r(N)
+
+// write the model from Stata into a plain text file
+tempname writemodel
+file open `writemodel' using "mystanmodel.stan", write replace
+#delimit ;
+foreach line in
+	"data { "
+	"  int<lower=0> N; "
+	"  int<lower=0,upper=1> y[N];"
+	"} "
+	"parameters {"
+	"  real<lower=0,upper=1> theta;"
+	"} "
+	"model {"
+	"  theta ~ beta(1,1);"
+	"  for (n in 1:N) "
+	"    y[n] ~ bernoulli(theta);"
+	"}"
+{;
+	#delimit cr
+	file write `writemodel' "`line'" _n
+}
+file close `writemodel'
+
+// call Stan
+stan y, modelfile("mystanmodel.stan") cmd("$cmdstandir") globals("N") load mode
+
