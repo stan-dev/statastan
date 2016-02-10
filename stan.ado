@@ -1,7 +1,7 @@
-version 11.0
 capture program drop stan
 
 program define stan
+version 11.0
 syntax varlist [if] [in] [, DATAfile(string) MODELfile(string) ///
 	INLINE THISFILE(string) ///
 	INITsfile(string) LOAD DIAGnose OUTPUTfile(string) MODESFILE(string) ///
@@ -39,7 +39,7 @@ syntax varlist [if] [in] [, DATAfile(string) MODELfile(string) ///
 	skipmissing: omit missing values variablewise to Stan (caution required!!!)
 	matrices: list of matrices to write, or 'all'
 	globals: list of global macro names to write, or 'all'
-	
+
 Notes:
 	the executable file and .hpp remains under cdir
 	non-existent globals and matrices, and non-numeric globals, get quietly ignored
@@ -171,7 +171,7 @@ if "`inline'"!="" {
 		else {
 			local tempprefix="SD"
 		}
-		while substr("`thisname'",1,2)!="`tempprefix'" { 
+		while substr("`thisname'",1,2)!="`tempprefix'" {
 			file read `lsin' thisname
 			if lower("$S_OS")=="windows" {
 				local thisfile "`tdir'\`thisname'"
@@ -187,7 +187,7 @@ if "`inline'"!="" {
 			}
 		}
 		capture file close `lsin'
-		
+
 	}
 	tempname fin
 	capture file close `fin'
@@ -250,7 +250,7 @@ foreach v of local varlist {
 					file write dataf "`linedata')" _n
 					local ++nlines
 				}
-					
+
 				else {
 					local ++i
 					local linedata=`v'[`i']
@@ -406,7 +406,7 @@ if lower("$S_OS")=="windows" {
 	}
 	file close ofile
 	file close rfile
-	
+
 	if "`mode'"=="mode" {
 		dis as result "#############################################"
 		dis as result "###  Output from optimizing to find mode  ###"
@@ -448,7 +448,7 @@ if lower("$S_OS")=="windows" {
 			tabdisp Parameter Posterior, cell(v1) cellwidth(9) left
 		restore
 	}
-	
+
 	if "`diagnose'"=="diagnose" {
 		dis as result "#################################"
 		dis as result "###  Output from diagnostics  ###"
@@ -493,7 +493,7 @@ else {
 	dis as result "##############################"
 	shell "`cdir'/`execfile'" sample`warmcom'`itercom'`thincom'`seedcom' init="`initlocation'" data file="`wdir'/`datafile'" output file="`wdir'/`outputfile'"
 	shell bin/print "`wdir'/`outputfile'"
-	
+
 	// reduce csv file
 	file open ofile using "`wdir'/`outputfile'", read
 	file open rfile using "`wdir'/`chainfile'", write text replace

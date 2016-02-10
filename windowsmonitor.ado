@@ -1,8 +1,15 @@
-version 11.0
 
 capture program drop windowsmonitor
 program define windowsmonitor
+version 11.0
+
 syntax ,COMMAND(string asis) [ WINLOGfile(string asis) waitsecs(integer 10) ]
+
+// stop if operating system is not Windows
+if lower("$S_OS")!="windows" {
+	dis as error "windowsmonitor can only run under a Windows operating system"
+	error 601
+}
 
 // default winlogfile
 if ("`winlogfile'"=="") {
@@ -41,7 +48,7 @@ if _rc {
 	dis as error "No output detected from Windows after `waitsecs' seconds"
 	error 601
 }
-	
+
 // start reading from winlogfile
 capture file close sout
 capture noisily { // to ensure files are closed
