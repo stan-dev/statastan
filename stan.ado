@@ -386,7 +386,7 @@ if lower("$S_OS")=="windows" {
 ! copy "`cdir'\`winlogfile'" "`wdir'\winlog3"
 	! copy "`cdir'\`outputfile'" "`wdir'\`outputfile'"
 
-	windowsmonitor, command(bin\print.exe `outputfile') winlogfile(`winlogfile') waitsecs(30)
+	windowsmonitor, command(bin\print.exe "`wdir'\\`outputfile'") winlogfile(`winlogfile') waitsecs(30)
 
 	// reduce csv file
 	file open ofile using "`wdir'\\`outputfile'", read
