@@ -386,7 +386,7 @@ if lower("$S_OS")=="windows" {
 ! copy "`cdir'\`winlogfile'" "`wdir'\winlog3"
 	! copy "`cdir'\`outputfile'" "`wdir'\`outputfile'"
 
-	windowsmonitor, command(bin\print.exe "`wdir'\\`outputfile'") winlogfile(`winlogfile') waitsecs(30)
+	windowsmonitor, command(bin\stansummary.exe "`wdir'\\`outputfile'") winlogfile(`winlogfile') waitsecs(30)
 
 	// reduce csv file
 	file open ofile using "`wdir'\\`outputfile'", read
@@ -492,7 +492,7 @@ else {
 	dis as result "###  Output from sampling  ###"
 	dis as result "##############################"
 	shell "`cdir'/`execfile'" sample`warmcom'`itercom'`thincom'`seedcom' init="`initlocation'" data file="`wdir'/`datafile'" output file="`wdir'/`outputfile'"
-	shell bin/print "`wdir'/`outputfile'"
+	shell bin/stansummary "`wdir'/`outputfile'"
 
 	// reduce csv file
 	file open ofile using "`wdir'/`outputfile'", read
