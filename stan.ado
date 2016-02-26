@@ -103,10 +103,11 @@ if "`winlogfile'"=="" {
 }
 local lenmod=length("`modelfile'")-5
 local execfile=substr("`modelfile'",1,`lenmod')
+local deleteme="`execfile'"
 if lower("$S_OS")=="windows" {
-	local execfile="`execfile'"+".exe"
+	local execfile="`deleteme'"+".exe"
 }
-	local cppfile="`execfile'"+".hpp"
+	local cppfile="`deleteme'"+".hpp"
 
 // strings to insert into shell command
 if `seed'==(-1) {
