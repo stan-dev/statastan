@@ -2,11 +2,8 @@ To-do list
 ---------------
 
 **prior to SSC submission:**
-* ADD comparison of modelfile in wdir & cdir to avoid re-compiling
 * ADD return stuff like means, 95%CIs, medians and modes
-* ADD stepsize
 * ADD number of chains (parallel if possible, series otherwise, and stitched together at the end)
-* ADD nochainfile option
 * ADD noprintsummary option
 
 **after SSC:**

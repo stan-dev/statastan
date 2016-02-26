@@ -44,6 +44,9 @@
 {synopt:{opt sk:ipmissing}}remove missing data observation-wise before sending to Stan{p_end}
 {synopt:{opt mat:rices(string)}}list of matrices to send to Stan, or "all" to send all current matrices{p_end}
 {synopt:{opt gl:obals(string)}}list of globals to send to Stan, or "all" to send all current global macros{p_end}
+{synopt:{opt keepf:iles(integer)}}keep all files produced along the way; if not specified, the model file, C++ file, executable file, chains file and (if produced) modes file will be retained{p_end}
+{synopt:{opt stepsize(integer)}}HMC stepsize, default 1 (see Stan manual){p_end}
+{synopt:{opt stepsizejitter(integer)}}HMC stepsize jitter, default 0 (see Stan manual){p_end}
 
 
 {synoptline}

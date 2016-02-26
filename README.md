@@ -9,7 +9,10 @@ Current status
 ---------
 StataStan comprises a command **stan**, a command **windowsmonitor** (which is required for **stan** if you are using Windows), and a developing set of template functions under stan_examples that write your data to specific models, so that Stata users can become familiar with Stan without having to write the model code immediately. We invite all Stata users to test it out and give us feedback, either here on Github, or by email to Robert Grant at [robertstats@live.com](mailto:robertstats@live.com).
 
-As of September 2015, there are some basic issues to fix and then the commands will be submitted to the Stata repository [SSC](https://ideas.repec.org/s/boc/bocode.html).
+Most recent changes:
+* print has been replaced with stansummary
+* all files are cleaned up from the CmdStan directory and appear in the working directory instead
+* added a 'keepfiles' option - without this, wmbatch (in Windows), winlogfile (in Windows), outputfile, .hpp will be deleted. The executable, datafile and chainsfile are retained no matter what.
 
 **stan** will fit a Stan model by Hamiltonian Monte Carlo. You can also ask for the posterior mode, which is found by optimization with the BFGS (or L-BFGS) algorithm. We intend to create more Stata commands, allowing CODA-style diagnostics and plotting after a model has been fitted and chains stored.
 
@@ -23,9 +26,9 @@ Getting Started
 
 Testing
 -----------------
-StataStan has been tested with CmdStan 2.6.2 and 2.7.0, Stata versions from 11.2 to 14.0, and Stata flavors IC and SE. We have not added multicore capacity yet, but it is on the to-do list and is easy to do (see Stan manual).
+StataStan has been tested with CmdStan 2.9.0, Stata versions from 11.2 to 14.0, and Stata flavors IC and SE. We have not added multicore capacity yet, but it is on the to-do list and is easy to do (see Stan manual).
 
-We have run it successfully on Linux, Mac and Windows, but we would like to hear from you if it works (or not) with Windows 10 or versions of Stata older then 11.0.
+We have run it successfully on Linux, Mac and Windows, but we would like to hear from you if it works (or not) with Windows 10 or versions of Stata older than 11.
 
 Other notes
 ---------------

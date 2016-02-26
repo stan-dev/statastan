@@ -7,7 +7,8 @@ syntax varlist [if] [in] [, DATAfile(string) MODELfile(string) ///
 	INITsfile(string) LOAD DIAGnose OUTPUTfile(string) MODESFILE(string) ///
 	CHAINfile(string) WINLOGfile(string) SEED(integer -1) WARMUP(integer -1) ///
 	ITER(integer -1) THIN(integer -1) CMDstandir(string) MODE ///
-	SKipmissing MATrices(string) GLobals(string)]
+	SKipmissing MATrices(string) GLobals(string) KEEPFiles STEPSIZE(real 1) ///
+	STEPSIZEJITTER(real 0)]
 
 /* options:
 	datafile: name to write data into in R/S format (in working dir)
@@ -39,13 +40,17 @@ syntax varlist [if] [in] [, DATAfile(string) MODELfile(string) ///
 	skipmissing: omit missing values variablewise to Stan (caution required!!!)
 	matrices: list of matrices to write, or 'all'
 	globals: list of global macro names to write, or 'all'
-
+	keepfiles: if stated, all files generated are kept in the working directory; if not,
+		all are deleted except the modelfile, C++ code, the executable, the modesfile and 
+		the chainfile.
+	stepsize: HMC stepsize, gets passed to CmdStan
+	stepsize_jitter: HMC stepsize jitter, gets passed to CmdStan
+	
 Notes:
-	the executable file and .hpp remains under cdir
 	non-existent globals and matrices, and non-numeric globals, get quietly ignored
 	missing values are removed casewise by default
 	users need to take care not to leave output file names as defaults if they
-		have anything called output.csv or modes.csv etc.
+		have anything called output.csv or modes.csv etc. - these will be overwritten!
 */
 
 
@@ -100,33 +105,36 @@ local lenmod=length("`modelfile'")-5
 local execfile=substr("`modelfile'",1,`lenmod')
 if lower("$S_OS")=="windows" {
 	local execfile="`execfile'"+".exe"
-	local cppfile="`execfile'"+".hpp"
 }
+	local cppfile="`execfile'"+".hpp"
+
 // strings to insert into shell command
 if `seed'==(-1) {
 	local seedcom=""
 }
 else {
-	local seedcom=" random seed=`seed'"
+	local seedcom="random seed=`seed'"
 }
 if `warmup'==(-1) {
 	local warmcom=""
 }
 else {
-	local warmcom=" num_warmup=`warmup'"
+	local warmcom="num_warmup=`warmup'"
 }
 if `iter'==(-1) {
 	local itercom=""
 }
 else {
-	local itercom=" num_samples=`iter'"
+	local itercom="num_samples=`iter'"
 }
 if `thin'==(-1) {
 	local thincom=""
 }
 else {
-	local thincom=" thin=`thin'"
+	local thincom="thin=`thin'"
 }
+local stepcom="stepsize=`stepsize'"
+local stepjcom="stepsize_jitter=`stepsizejitter'"
 
 preserve
 if "`if'"!="" | "`in'"!="" {
@@ -381,9 +389,11 @@ if lower("$S_OS")=="windows" {
 	dis as result "##############################"
 	dis as result "###  Output from sampling  ###"
 	dis as result "##############################"
-	windowsmonitor, command(`cdir'\\`execfile' sample`warmcom'`itercom'`thincom'`seedcom' data file=`wdir'\\`datafile' output file=`wdir'\\`outputfile') ///
+	
+	windowsmonitor, command(`cdir'\\`execfile' method=sample `warmcom' `itercom' `thincom' `seedcom' algorithm=hmc `stepcom' `stepjcom' output file=`wdir'\\`outputfile' data file=`wdir'\\`datafile') ///
 		winlogfile(`winlogfile') waitsecs(30)
-! copy "`cdir'\`winlogfile'" "`wdir'\winlog3"
+	
+	! copy "`cdir'\`winlogfile'" "`wdir'\winlog3"
 	! copy "`cdir'\`outputfile'" "`wdir'\`outputfile'"
 
 	windowsmonitor, command(bin\stansummary.exe "`wdir'\\`outputfile'") winlogfile(`winlogfile') waitsecs(30)
@@ -456,6 +466,21 @@ if lower("$S_OS")=="windows" {
 		windowsmonitor, command(`cdir'\\`execfile' diagnose data file=`wdir'\\`datafile') ///
 			winlogfile("`wdir'\\`winlogfile'") waitsecs(30)
 	}
+	
+	// tidy up files
+	!del "`winlogfile'"
+	!del "wmbatch.bat"
+	!del "`modelfile'"
+	!copy "`cppfile'" "`wdir'\\`cppfile'"
+	!copy "`execfile'" "`wdir'\\`execfile'"
+	if "`keepfiles'"=="" {
+		!del "`wdir'\\`winlogfile'"
+		!del "`wdir'\\wmbatch.bat"
+		!del "`wdir'\\`outputfile'"
+	}
+	!del "`cdir'\\`cppfile'"
+	!del "`cdir'\\`execfile'"
+	
 	cd "`wdir'"
 }
 
@@ -491,7 +516,7 @@ else {
 	dis as result "##############################"
 	dis as result "###  Output from sampling  ###"
 	dis as result "##############################"
-	shell "`cdir'/`execfile'" sample`warmcom'`itercom'`thincom'`seedcom' init="`initlocation'" data file="`wdir'/`datafile'" output file="`wdir'/`outputfile'"
+	shell `execfile' method=sample `warmcom' `itercom' `thincom' `seedcom' algorithm=hmc `stepcom' `stepjcom' output file=`wdir'/`outputfile' data file=`wdir'/`datafile'
 	shell bin/stansummary "`wdir'/`outputfile'"
 
 	// reduce csv file
@@ -557,6 +582,20 @@ else {
 		dis as result "#################################"
 		shell "`cdir'/`execfile'" diagnose data file="`wdir'/`datafile'"
 	}
+	
+		// tidy up files
+	!rm "`winlogfile'"
+	!rm "wmbatch.bat"
+	!rm "`modelfile'"
+	!cp "`cppfile'" "`wdir'/`cppfile'"
+	!cp "`execfile'" "`wdir'/`execfile'"
+	if "`keepfiles'"=="" {
+		!rm "`wdir'/`outputfile'"
+	}
+	!rm "`cdir'/`cppfile'"
+	!rm "`cdir'/`execfile'"
+	
+
 	cd "`wdir'"
 }
 
