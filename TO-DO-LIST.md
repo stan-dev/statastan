@@ -1,12 +1,9 @@
 To-do list
 ---------------
 
-**prior to SSC submission:**
 * ADD return stuff like means, 95%CIs, medians and modes
 * ADD number of chains (parallel if possible, series otherwise, and stitched together at the end)
 * ADD noprintsummary option
-
-**after SSC:**
 * WRITE quick start guide
 * WRITE vignette
 * WRITE manual (same as .sthlp but using Stata manual LaTeX template)
