@@ -1,5 +1,5 @@
 {smcl}
-{* *! version 1.0  10sep2015}{...}
+{* *! version 1.1  26feb2016}{...}
 {vieweralsosee "" "--"}{...}
 {vieweralsosee "windowsmonitor" "help windowsmonitor"}{...}
 {viewerjumpto "Syntax" "stan##syntax"}{...}
@@ -59,22 +59,22 @@
 {title:Description}
 
 {pstd}
-{cmd:stan} is the Stata interface to the open-source Bayesian software Stan, which works by translating a simple model language to C++ and compiling that. 
-Stan utilises Hamiltonian Monte Carlo through the No U-Turn Sampler (NUTS) to provide much faster and more stable sampling than could be achieved with the Metropolis-Hastings algorithm or the Gibbs sampler (these are the methods implemented in BUGS, JAGS and {cmd:bayesmh}). 
-In keeping with other Stan interfaces, it is known as StataStan when regarded as a package along with {help windowsmonitor} and the various {cmd:stan_*} commands to populate specific models. 
-In essence, it is a wrapper for the CmdStan command-line interface. 
+{cmd:stan} is the Stata interface to the open-source Bayesian software Stan, which works by translating a simple model language to C++ and compiling that.
+Stan utilises Hamiltonian Monte Carlo through the No U-Turn Sampler (NUTS) to provide much faster and more stable sampling than could be achieved with the Metropolis-Hastings algorithm or the Gibbs sampler (these are the methods implemented in BUGS, JAGS and {cmd:bayesmh}).
+In keeping with other Stan interfaces, it is known as StataStan when regarded as a package along with {help windowsmonitor} and the various {cmd:stan_*} commands to populate specific models.
+In essence, it is a wrapper for the CmdStan command-line interface.
 Data and results are passed between Stata and Stan via text files.
 
 {pstd}
-To use {cmd:stan}, you will need to have CmdStan installed from http://mc-stan.org/interfaces/cmdstan.html where you will also find instructions on installation and checking that you can compile C++ programs. 
+To use {cmd:stan}, you will need to have CmdStan installed from http://mc-stan.org/interfaces/cmdstan.html where you will also find instructions on installation and checking that you can compile C++ programs.
 The Stan programming manual and quick-start guide is at http://mc-stan.org/documentation/
 
 {pstd}
 If you are using {cmd:stan} on a Windows computer, you will need to install {cmd:windowsmonitor} too.
 
 {pstd}
-The variables listed in {it:varlist} will be sent to Stan, along with any global macros and matrices that are named in the relevant options. 
-If the option {it:skipmissing} is included, missing data will be excluded observation-wise, which means that each variable becomes a vector containing only the non-missing values. 
+The variables listed in {it:varlist} will be sent to Stan, along with any global macros and matrices that are named in the relevant options.
+If the option {it:skipmissing} is included, missing data will be excluded observation-wise, which means that each variable becomes a vector containing only the non-missing values.
 This is potentially useful as a way of sending vectors of different lengths to Stan, but should be used with great caution if the current data contain missing values.
 
 
@@ -141,8 +141,8 @@ This is potentially useful as a way of sending vectors of different lengths to S
 {title:Remarks}
 
 {pstd}
-StataStan is maintained and collaboratively developed at https://github.com/stan-dev/statastan where you can find the latest versions 
-and reports of issues that need to be fixed - and you can suggest improvements. 
+StataStan is maintained and collaboratively developed at https://github.com/stan-dev/statastan where you can find the latest versions
+and reports of issues that need to be fixed - and you can suggest improvements.
 The Stan developers are listed at http://mc-stan.org/team
 
 {pstd}
@@ -172,13 +172,13 @@ global cmdstandir "/root/cmdstan/cmdstan-2.6.2"
 //##############################################
 // Version 1: write a separate model file
 
-/* call Stan, providing the modelfile option - no need to do anything else but you must 
+/* call Stan, providing the modelfile option - no need to do anything else but you must
 keep the .do and .stan files together for posterity */
 stan y, modelfile("bernoulli.stan") cmd("$cmdstandir") globals("N")
 
 //###########################################
 
-/* Version 2: specify the model inline in a comment block, naming THIS do-file in the 
+/* Version 2: specify the model inline in a comment block, naming THIS do-file in the
 thisfile option (the John Thompson method, adopted from his commands for interfacing with BUGS) */
 
 // here's the model:
@@ -232,7 +232,7 @@ stan y, inline modelfile("inline-bernoulli.stan") ///
 //###############################################################
 
 /* Version 4: specify the model inline, so it is written to the
- text file of your choosing but everything is controlled from the do-file 
+ text file of your choosing but everything is controlled from the do-file
  (the Charles Opondo method) */
 
 // make the data
@@ -269,4 +269,3 @@ file close `writemodel'
 
 // call Stan
 stan y, modelfile("mystanmodel.stan") cmd("$cmdstandir") globals("N") load mode
-
