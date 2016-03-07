@@ -33,11 +33,12 @@
 {synopt:{opt init:sfile(filename)}}text file in R / S-plus format containing initial values{p_end}
 {synopt:{opt diag:nose}}run Stan's diagnostics{p_end}
 {synopt:{opt output:file(filename)}}destination text file for Stan outputs{p_end}
-{synopt:{opt chain:file(filename)}}destination for Stan chains in CSV format{p_end}
+{synopt:{opt chainf:ile(filename)}}destination for Stan chains in CSV format{p_end}
 {synopt:{opt mode}}run Stan's optimization to find posterior modes{p_end}
 {synopt:{opt modesfile(filename)}}destination text file for Stan estimation of modes{p_end}
 {synopt:{opt winlog:file(filename)}}temporary file to hold Windows output (see {cmd:windowsmonitor}){p_end}
 {synopt:{opt seed}}random number generator seed for Stan{p_end}
+{synopt:{opt chains(integer)}}number of chains of draws from the posterior distribution; if possible, these will be run in parallel on multiple CPU cores{p_end}
 {synopt:{opt warmup(integer)}}number of warmup iterations{p_end}
 {synopt:{opt iter(integer)}}number of iterations to retain after warmup{p_end}
 {synopt:{opt thin(integer)}}thinning of iterations: retain one out of every {it:thin}{p_end}

@@ -5,10 +5,10 @@ version 11.0
 syntax varlist [if] [in] [, DATAfile(string) MODELfile(string) ///
 	INLINE THISFILE(string) ///
 	INITsfile(string) LOAD DIAGnose OUTPUTfile(string) MODESFILE(string) ///
-	CHAINfile(string) WINLOGfile(string) SEED(integer -1) WARMUP(integer -1) ///
-	ITER(integer -1) THIN(integer -1) CMDstandir(string) MODE ///
-	SKipmissing MATrices(string) GLobals(string) KEEPFiles STEPSIZE(real 1) ///
-	STEPSIZEJITTER(real 0)]
+	CHAINFile(string) WINLOGfile(string) SEED(integer -1) CHAINS(integer 1) ///
+	WARMUP(integer -1) ITER(integer -1) THIN(integer -1) CMDstandir(string) ///
+	MODE SKipmissing MATrices(string) GLobals(string) KEEPFiles ///
+	STEPSIZE(real 1) STEPSIZEJITTER(real 0)]
 
 /* options:
 	datafile: name to write data into in R/S format (in working dir)
@@ -32,6 +32,7 @@ syntax varlist [if] [in] [, DATAfile(string) MODELfile(string) ///
 		to support parallel processing, numbers will be added to this (but not yet)
 	winlogfile: in Windows, where to store stdout & stderr before displaying on the screen
 	seed: RNG seed
+	chains: number of chains
 	warmup: number of warmup (burn-in) steps
 	iter: number of samples to retain after warmup
 	thin: keep every nth sample, for autocorrelation
@@ -53,17 +54,30 @@ Notes:
 		have anything called output.csv or modes.csv etc. - these will be overwritten!
 */
 
-
+local statastanversion="1.1"
 local wdir="`c(pwd)'"
 local cdir="`cmdstandir'"
-/*if "`cdir'"!="" {
-	if lower("$S_OS")=="windows" {
-		local cdir="`cmdstandir'\"
-	}
-	else {
-		local cdir="`cmdstandir'/"
-	}
-}*/
+
+// get CmdStan version
+tempname cmdstanversioncheck // note this is tempname not tempfile
+if lower("$S_OS")=="windows" {
+	shell "`cdir'\bin\stanc" --version >> "`cmdstanversioncheck'"
+}
+else {
+	shell "`cdir'/bin/stanc" --version >> "`cmdstanversioncheck'"
+}
+file open cv using "`cmdstanversioncheck'", read
+file read cv cvline
+local cmdstanversion=substr("`cvline'",15,.)
+dis as result "StataStan version: `statastanversion'"
+dis as result "CmdStan version: `cmdstanversion'"
+file close cv
+if lower("$S_OS")=="windows" {
+	shell del "`cmdstanversioncheck'"
+}
+else {
+	shell rm "`cmdstanversioncheck'"
+}
 
 // defaults
 if "`datafile'"=="" {
@@ -79,14 +93,15 @@ if "`initsfile'"=="" {
 }
 else {
 	if lower("$S_OS")=="windows" {
-		local initlocation="`wdir'\`initsfile'"
+		local initlocation="`wdir'\\`initsfile'"
 	}
 	else {
 		local initlocation="`wdir'/`initsfile'"
 	}
 }
+// this holds the entered name but .csv will be appended later
 if "`outputfile'"=="" {
-	local outputfile="output.csv"
+	local outputfile="output"
 }
 if "`modesfile'"=="" {
 	local modesfile="modes.csv"
@@ -94,7 +109,7 @@ if "`modesfile'"=="" {
 if "`chainfile'"=="" {
 	local chainfile="statastan_chains.csv"
 }
-if "`chainfile'"=="`outputfile'" {
+if "`chainfile'"=="`outputfile'" | "`chainfile'"=="`outputfile'.csv" {
 	print as error "chainfile and outputfile cannot have the same name"
 	error 1
 }
@@ -116,6 +131,10 @@ if `seed'==(-1) {
 else {
 	local seedcom="random seed=`seed'"
 }
+if `chains'<1 {
+	dis as error "You must specify 1 or more chains"
+	error 1
+}
 if `warmup'==(-1) {
 	local warmcom=""
 }
@@ -136,6 +155,40 @@ else {
 }
 local stepcom="stepsize=`stepsize'"
 local stepjcom="stepsize_jitter=`stepsizejitter'"
+
+// check for existing files
+tempfile outputcheck
+if lower("$S_OS")=="windows" {
+	shell if exist "`cdir'\\`outputfile'*.csv" (echo yes) else (echo no) >> "`outputcheck'"
+}
+else {
+	shell test -e "`cdir'/`outputfile'*.csv" && echo "yes" || echo "no" >> "`outputcheck'"
+}
+file open oc using "`outputcheck'", read
+file read oc ocline
+if "`ocline'"=="yes" {
+	dis as error "There are already one or more files in `cdir' called `outputfile'*.csv"
+	dis as error "These may be overwritten by StataStan or incorrectly included in posterior summaries."
+	dis as error "Please rename or move them to avoid data loss or errors."
+	file close oc
+	error 1
+}
+file close oc
+if lower("$S_OS")=="windows" {
+	shell if exist "`wdir'\\`outputfile'*.csv" (echo yes) else (echo no) >> "`outputcheck'"
+}
+else {
+	shell test -e "`wdir'/`outputfile'*.csv" && echo "yes" || echo "no" >> "`outputcheck'"
+}
+file open oc using "`outputcheck'", read
+file read oc ocline
+if "`ocline'"=="yes" {
+	dis as error "There are already one or more files in `wdir' called `outputfile'*.csv"
+	dis as error "These may be overwritten by StataStan or incorrectly included in posterior summaries."
+	dis as error "Please rename or move them to avoid data loss or errors."
+	error 1
+}
+file close oc
 
 preserve
 if "`if'"!="" | "`in'"!="" {
@@ -391,16 +444,16 @@ if lower("$S_OS")=="windows" {
 	dis as result "###  Output from sampling  ###"
 	dis as result "##############################"
 	
-	windowsmonitor, command(`cdir'\\`execfile' method=sample `warmcom' `itercom' `thincom' `seedcom' algorithm=hmc `stepcom' `stepjcom' output file=`wdir'\\`outputfile' data file=`wdir'\\`datafile') ///
+	windowsmonitor, command(`cdir'\\`execfile' method=sample `warmcom' `itercom' `thincom' `seedcom' algorithm=hmc `stepcom' `stepjcom' output file=`wdir'\\`outputfile'.csv data file=`wdir'\\`datafile') ///
 		winlogfile(`winlogfile') waitsecs(30)
 	
 	! copy "`cdir'\`winlogfile'" "`wdir'\winlog3"
-	! copy "`cdir'\`outputfile'" "`wdir'\`outputfile'"
+	! copy "`cdir'\`outputfile'.csv" "`wdir'\`outputfile'.csv"
 
-	windowsmonitor, command(bin\stansummary.exe "`wdir'\\`outputfile'") winlogfile(`winlogfile') waitsecs(30)
+	windowsmonitor, command(bin\stansummary.exe "`wdir'\\`outputfile'.csv") winlogfile(`winlogfile') waitsecs(30)
 
 	// reduce csv file
-	file open ofile using "`wdir'\\`outputfile'", read
+	file open ofile using "`wdir'\\`outputfile'.csv", read
 	file open rfile using "`wdir'\\`chainfile'", write text replace
 	capture noisily {
 		file read ofile oline
@@ -422,11 +475,11 @@ if lower("$S_OS")=="windows" {
 		dis as result "#############################################"
 		dis as result "###  Output from optimizing to find mode  ###"
 		dis as result "#############################################"
-		windowsmonitor, command(`cdir'\\`execfile' optimize data file=`wdir'\\`datafile' output file=`wdir'\\`outputfile') ///
+		windowsmonitor, command(`cdir'\\`execfile' optimize data file=`wdir'\\`datafile' output file=`wdir'\\`outputfile'.csv) ///
 			winlogfile(`winlogfile') waitsecs(30)
 
 		// extract mode and lp__ from output.csv
-		file open ofile using "`wdir'\\`outputfile'", read
+		file open ofile using "`wdir'\\`outputfile'.csv", read
 		file open mfile using "`wdir'\\`modesfile'", write text replace
 		capture noisily {
 			file read ofile oline
@@ -477,7 +530,7 @@ if lower("$S_OS")=="windows" {
 	if "`keepfiles'"=="" {
 		!del "`wdir'\\`winlogfile'"
 		!del "`wdir'\\wmbatch.bat"
-		!del "`wdir'\\`outputfile'"
+		!del "`wdir'\\`outputfile'.csv"
 	}
 	!del "`cdir'\\`cppfile'"
 	!del "`cdir'\\`execfile'"
@@ -517,11 +570,11 @@ else {
 	dis as result "##############################"
 	dis as result "###  Output from sampling  ###"
 	dis as result "##############################"
-	shell `execfile' method=sample `warmcom' `itercom' `thincom' `seedcom' algorithm=hmc `stepcom' `stepjcom' output file=`wdir'/`outputfile' data file=`wdir'/`datafile'
-	shell bin/stansummary "`wdir'/`outputfile'"
+	shell `execfile' method=sample `warmcom' `itercom' `thincom' `seedcom' algorithm=hmc `stepcom' `stepjcom' output file=`wdir'/`outputfile'.csv data file=`wdir'/`datafile'
+	shell bin/stansummary "`wdir'/`outputfile'.csv"
 
 	// reduce csv file
-	file open ofile using "`wdir'/`outputfile'", read
+	file open ofile using "`wdir'/`outputfile'.csv", read
 	file open rfile using "`wdir'/`chainfile'", write text replace
 	capture noisily {
 		file read ofile oline
@@ -542,9 +595,9 @@ else {
 		dis as result "#############################################"
 		dis as result "###  Output from optimizing to find mode  ###"
 		dis as result "#############################################"
-		shell "`cdir'/`execfile'" optimize data file="`wdir'/`datafile'" output file="`wdir'/`outputfile'"
+		shell "`cdir'/`execfile'" optimize data file="`wdir'/`datafile'" output file="`wdir'/`outputfile'.csv"
 		// extract mode and lp__ from output.csv
-		file open ofile using "`wdir'/`outputfile'", read
+		file open ofile using "`wdir'/`outputfile'.csv", read
 		file open mfile using "`wdir'/`modesfile'", write text replace
 		capture noisily {
 			file read ofile oline
@@ -591,7 +644,7 @@ else {
 	!cp "`cppfile'" "`wdir'/`cppfile'"
 	!cp "`execfile'" "`wdir'/`execfile'"
 	if "`keepfiles'"=="" {
-		!rm "`wdir'/`outputfile'"
+		!rm "`wdir'/`outputfile'.csv"
 	}
 	!rm "`cdir'/`cppfile'"
 	!rm "`cdir'/`execfile'"
