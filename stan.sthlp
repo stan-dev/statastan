@@ -1,5 +1,5 @@
 {smcl}
-{* *! version 1.1  26feb2016}{...}
+{* *! version 1.2  08mar2016}{...}
 {vieweralsosee "" "--"}{...}
 {vieweralsosee "windowsmonitor" "help windowsmonitor"}{...}
 {viewerjumpto "Syntax" "stan##syntax"}{...}
