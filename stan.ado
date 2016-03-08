@@ -42,11 +42,11 @@ syntax varlist [if] [in] [, DATAfile(string) MODELfile(string) ///
 	matrices: list of matrices to write, or 'all'
 	globals: list of global macro names to write, or 'all'
 	keepfiles: if stated, all files generated are kept in the working directory; if not,
-		all are deleted except the modelfile, C++ code, the executable, the modesfile and 
+		all are deleted except the modelfile, C++ code, the executable, the modesfile and
 		the chainfile.
 	stepsize: HMC stepsize, gets passed to CmdStan
 	stepsize_jitter: HMC stepsize jitter, gets passed to CmdStan
-	
+
 Notes:
 	non-existent globals and matrices, and non-numeric globals, get quietly ignored
 	missing values are removed casewise by default
@@ -217,7 +217,7 @@ if "`inline'"!="" {
 	if "`thisfile'"=="" {
 		tempname lsin
 		if lower("$S_OS")=="windows" {
-			shell dir `tdir' -b -o:-D >> `tdirls' // check this works!
+			shell dir `tdir' -b -o:-D >> `tdirls' 
 		}
 		else {
 			shell ls `tdir' -t >>  `tdirls'
@@ -435,7 +435,6 @@ if lower("$S_OS")=="windows" {
 	dis as result "###  Output from compiling  ###"
 	dis as result "###############################"
 	windowsmonitor, command(make "`execfile'") winlogfile(`winlogfile') waitsecs(30)
-	// leave modelfile in cdir so make can check need to re-compile
 ! copy `cdir'\`winlogfile' `wdir'
 	! copy "`cdir'\`cppfile'" "`wdir'\`cppfile'"
 	! copy "`cdir'\`execfile'" "`wdir'\`execfile'"
@@ -443,33 +442,82 @@ if lower("$S_OS")=="windows" {
 	dis as result "##############################"
 	dis as result "###  Output from sampling  ###"
 	dis as result "##############################"
-	
-	windowsmonitor, command(`cdir'\\`execfile' method=sample `warmcom' `itercom' `thincom' `seedcom' algorithm=hmc `stepcom' `stepjcom' output file=`wdir'\\`outputfile'.csv data file=`wdir'\\`datafile') ///
-		winlogfile(`winlogfile') waitsecs(30)
-	
-	! copy "`cdir'\`winlogfile'" "`wdir'\winlog3"
-	! copy "`cdir'\`outputfile'.csv" "`wdir'\`outputfile'.csv"
 
-	windowsmonitor, command(bin\stansummary.exe "`wdir'\\`outputfile'.csv") winlogfile(`winlogfile') waitsecs(30)
+	if `chains'==1 {
+		windowsmonitor, command(`cdir'\\`execfile' method=sample `warmcom' `itercom' `thincom' `seedcom' algorithm=hmc `stepcom' `stepjcom' output file=`wdir'\\`outputfile'.csv data file=`wdir'\\`datafile') ///
+			winlogfile(`winlogfile') waitsecs(30)
+	}
+	else {
+		windowsmonitor, command(for /l %%x in (1,1,`chains') do start /b /w `cdir'\\`execfile' id=%%x random `seedcom' method=sample `warmcom' `itercom' `thincom' algorithm=hmc `stepcom' `stepjcom' output file=`wdir'\\`outputfile'%%x.csv data file=`wdir'\\`datafile') ///
+			winlogfile(`winlogfile') waitsecs(30)
+	}
+	! copy "`cdir'\`winlogfile'" "`wdir'\winlog3"
+	! copy "`cdir'\`outputfile'*.csv" "`wdir'\`outputfile'*.csv"
+
+	windowsmonitor, command(bin\stansummary.exe `wdir'\\`outputfile'*.csv) winlogfile(`winlogfile') waitsecs(30)
 
 	// reduce csv file
-	file open ofile using "`wdir'\\`outputfile'.csv", read
-	file open rfile using "`wdir'\\`chainfile'", write text replace
-	capture noisily {
-		file read ofile oline
-		while r(eof)==0 {
-			//dis as result "`oline'" // for debuggin'
-			if length("`oline'")!=0 {
-				local firstchar=substr("`oline'",1,1)
-				if "`firstchar'"!="#" {
-					file write rfile "`oline'" _n
+	if `chains'==1 {
+		file open ofile using "`wdir'\\`outputfile'.csv", read
+		file open rfile using "`wdir'\\`chainfile'", write text replace
+		capture noisily {
+			file read ofile oline
+			while r(eof)==0 {
+				if length("`oline'")!=0 {
+					local firstchar=substr("`oline'",1,1)
+					if "`firstchar'"!="#" {
+						file write rfile "`oline'" _n
+					}
+				}
+				file read ofile oline
+			}
+		}
+		file close ofile
+		file close rfile
+	}
+	else {
+		local headerline=1 // flags up when writing the variable names in the header
+		file open ofile using "`wdir'\\`outputfile'1.csv", read
+		file open rfile using "`wdir'\\`chainfile'", write text replace
+		capture noisily {
+			file read ofile oline
+			while r(eof)==0 {
+				if length("`oline'")!=0 {
+					local firstchar=substr("`oline'",1,1)
+					if "`firstchar'"!="#" {
+						if `headerline'==1 {
+							file write rfile "`oline',chain" _n
+							local headerline=0
+						}
+						else {
+							file write rfile "`oline',1" _n
+						}
+					}
+				}
+				file read ofile oline
+			}
+		}
+		file close ofile
+		forvalues i=2/`chains' {
+			file open ofile using "`wdir'\\`outputfile'`i'.csv", read
+			capture noisily {
+				file read ofile oline
+				while r(eof)==0 {
+					if length("`oline'")!=0 {
+						local firstchar=substr("`oline'",1,1)
+						// skip comments and (because these are chains 2-n)
+						// the variable names (which always start with lp__)
+						if "`firstchar'"!="#" & "`firstchar'"!="l" {
+							file write rfile "`oline',`i'" _n
+						}
+					}
+					file read ofile oline
 				}
 			}
-			file read ofile oline
+			file close ofile
 		}
+		file close rfile
 	}
-	file close ofile
-	file close rfile
 
 	if "`mode'"=="mode" {
 		dis as result "#############################################"
@@ -520,7 +568,7 @@ if lower("$S_OS")=="windows" {
 		windowsmonitor, command(`cdir'\\`execfile' diagnose data file=`wdir'\\`datafile') ///
 			winlogfile("`wdir'\\`winlogfile'") waitsecs(30)
 	}
-	
+
 	// tidy up files
 	!del "`winlogfile'"
 	!del "wmbatch.bat"
@@ -530,11 +578,11 @@ if lower("$S_OS")=="windows" {
 	if "`keepfiles'"=="" {
 		!del "`wdir'\\`winlogfile'"
 		!del "`wdir'\\wmbatch.bat"
-		!del "`wdir'\\`outputfile'.csv"
+		!del "`wdir'\\`outputfile'*.csv"
 	}
 	!del "`cdir'\\`cppfile'"
 	!del "`cdir'\\`execfile'"
-	
+
 	cd "`wdir'"
 }
 
@@ -636,7 +684,7 @@ else {
 		dis as result "#################################"
 		shell "`cdir'/`execfile'" diagnose data file="`wdir'/`datafile'"
 	}
-	
+
 		// tidy up files
 	!rm "`winlogfile'"
 	!rm "wmbatch.bat"
@@ -648,7 +696,7 @@ else {
 	}
 	!rm "`cdir'/`cppfile'"
 	!rm "`cdir'/`execfile'"
-	
+
 
 	cd "`wdir'"
 }
