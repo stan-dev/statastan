@@ -54,7 +54,7 @@ Notes:
 		have anything called output.csv or modes.csv etc. - these will be overwritten!
 */
 
-local statastanversion="1.1"
+local statastanversion="1.2"
 local wdir="`c(pwd)'"
 local cdir="`cmdstandir'"
 
@@ -217,7 +217,7 @@ if "`inline'"!="" {
 	if "`thisfile'"=="" {
 		tempname lsin
 		if lower("$S_OS")=="windows" {
-			shell dir `tdir' -b -o:-D >> `tdirls' 
+			shell dir `tdir' -b -o:-D >> `tdirls'
 		}
 		else {
 			shell ls `tdir' -t >>  `tdirls'
