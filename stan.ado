@@ -618,8 +618,14 @@ else {
 	dis as result "##############################"
 	dis as result "###  Output from sampling  ###"
 	dis as result "##############################"
-	shell `execfile' method=sample `warmcom' `itercom' `thincom' `seedcom' algorithm=hmc `stepcom' `stepjcom' output file=`wdir'/`outputfile'.csv data file=`wdir'/`datafile'
-	shell bin/stansummary "`wdir'/`outputfile'.csv"
+	if `chains'==1 {
+		shell `execfile' random `seedcom' method=sample `warmcom' `itercom' `thincom' algorithm=hmc `stepcom' `stepjcom' output file=`wdir'/`outputfile'.csv data file=`wdir'/`datafile'
+	}
+	else {
+		shell for i in {1..`chains'} do `execfile' id=$i random `seedcom' method=sample `warmcom' `itercom' `thincom' algorithm=hmc `stepcom' `stepjcom' output file=`wdir'/`outputfile'$i.csv data file=`wdir'/`datafile' &
+done
+	}
+	shell bin/stansummary "`wdir'/`outputfile'*.csv"
 
 	// reduce csv file
 	file open ofile using "`wdir'/`outputfile'.csv", read
