@@ -444,17 +444,17 @@ if lower("$S_OS")=="windows" {
 	dis as result "##############################"
 
 	if `chains'==1 {
-		windowsmonitor, command(`cdir'\\`execfile' method=sample `warmcom' `itercom' `thincom' `seedcom' algorithm=hmc `stepcom' `stepjcom' output file=`wdir'\\`outputfile'.csv data file=`wdir'\\`datafile') ///
+		windowsmonitor, command(`cdir'\\`execfile' method=sample `warmcom' `itercom' `thincom' `seedcom' algorithm=hmc `stepcom' `stepjcom' output file="`wdir'\\`outputfile'.csv" data file="`wdir'\\`datafile'") ///
 			winlogfile(`winlogfile') waitsecs(30)
 	}
 	else {
-		windowsmonitor, command(for /l %%x in (1,1,`chains') do start /b /w `cdir'\\`execfile' id=%%x random `seedcom' method=sample `warmcom' `itercom' `thincom' algorithm=hmc `stepcom' `stepjcom' output file=`wdir'\\`outputfile'%%x.csv data file=`wdir'\\`datafile') ///
+		windowsmonitor, command(for /l %%x in (1,1,`chains') do start /b /w `cdir'\\`execfile' id=%%x random `seedcom' method=sample `warmcom' `itercom' `thincom' algorithm=hmc `stepcom' `stepjcom' output file="`wdir'\\`outputfile'%%x.csv" data file="`wdir'\\`datafile'") ///
 			winlogfile(`winlogfile') waitsecs(30)
 	}
 	! copy "`cdir'\`winlogfile'" "`wdir'\winlog3"
 	! copy "`cdir'\`outputfile'*.csv" "`wdir'\`outputfile'*.csv"
 
-	windowsmonitor, command(bin\stansummary.exe `wdir'\\`outputfile'*.csv) winlogfile(`winlogfile') waitsecs(30)
+	windowsmonitor, command(bin\stansummary.exe "`wdir'\\`outputfile'*.csv") winlogfile(`winlogfile') waitsecs(30)
 
 	// reduce csv file
 	if `chains'==1 {
@@ -523,7 +523,7 @@ if lower("$S_OS")=="windows" {
 		dis as result "#############################################"
 		dis as result "###  Output from optimizing to find mode  ###"
 		dis as result "#############################################"
-		windowsmonitor, command(`cdir'\\`execfile' optimize data file=`wdir'\\`datafile' output file=`wdir'\\`outputfile'.csv) ///
+		windowsmonitor, command(`cdir'\\`execfile' optimize data file="`wdir'\\`datafile'" output file="`wdir'\\`outputfile'.csv") ///
 			winlogfile(`winlogfile') waitsecs(30)
 
 		// extract mode and lp__ from output.csv
@@ -565,7 +565,7 @@ if lower("$S_OS")=="windows" {
 		dis as result "#################################"
 		dis as result "###  Output from diagnostics  ###"
 		dis as result "#################################"
-		windowsmonitor, command(`cdir'\\`execfile' diagnose data file=`wdir'\\`datafile') ///
+		windowsmonitor, command(`cdir'\\`execfile' diagnose data file="`wdir'\\`datafile'") ///
 			winlogfile("`wdir'\\`winlogfile'") waitsecs(30)
 	}
 
@@ -618,7 +618,7 @@ else {
 	dis as result "##############################"
 	dis as result "###  Output from sampling  ###"
 	dis as result "##############################"
-	shell `execfile' method=sample `warmcom' `itercom' `thincom' `seedcom' algorithm=hmc `stepcom' `stepjcom' output file=`wdir'/`outputfile'.csv data file=`wdir'/`datafile'
+	shell `execfile' method=sample `warmcom' `itercom' `thincom' `seedcom' algorithm=hmc `stepcom' `stepjcom' output file="`wdir'/`outputfile'.csv" data file="`wdir'/`datafile'"
 	shell bin/stansummary "`wdir'/`outputfile'.csv"
 
 	// reduce csv file
