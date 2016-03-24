@@ -12,3 +12,4 @@ To-do list
 * CONSIDER moving the line-copying that reduces outputfile(s) to chainsfile into OS or even Stan so it doesn't have to go via Stata (though this is not a problem for speed so far)
 * CONSIDER whether cmdstandir can be set permanently in Stata
 * CONSIDER posting means and covariance matrix to e() but I'm not sure what the value of this would be. Could it tempt people into doing strange amalgams of Bayesian model + post-estimation Wald tests?
+* REMOVE stepsize_jitter (deprecating in Stan v3)
