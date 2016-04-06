@@ -600,11 +600,11 @@ else {
 		file open `wrk' using "`working'", read text
 		file read `wrk' line
 		if "`line'" !="" {
-			shell copy "`wdir'/`modelfile'" "`cdir'/`modelfile'"
+			shell cp "`wdir'/`modelfile'" "`cdir'/`modelfile'"
 		}
 	}
 	else {
-		shell copy "`wdir'/`modelfile'" "`cdir'/`modelfile'"
+		shell cp "`wdir'/`modelfile'" "`cdir'/`modelfile'"
 	}
 	shell cp "`wdir'/`modelfile'" "`cdir'/`modelfile'"
 	cd "`cdir'"
@@ -622,7 +622,7 @@ else {
 		shell ./`execfile' random `seedcom' method=sample `warmcom' `itercom' `thincom' algorithm=hmc `stepcom' `stepjcom' output file="`wdir'/`outputfile'.csv" data file="`wdir'/`datafile'"
 	}
 	else {
-		shell for i in {1..`chains'} do ./`execfile' id=\$i random `seedcom' method=sample `warmcom' `itercom' `thincom' algorithm=hmc `stepcom' `stepjcom' output file="`wdir'/`outputfile'\$i.csv" data file="`wdir'/`datafile'" & done
+		shell for i in {1..`chains'}; do ./`execfile' id=\$i random `seedcom' method=sample `warmcom' `itercom' `thincom' algorithm=hmc `stepcom' `stepjcom' output file="`wdir'/`outputfile'\$i.csv" data file="`wdir'/`datafile'" & done
 	}
 	shell bin/stansummary "`wdir'/`outputfile'*.csv"
 
