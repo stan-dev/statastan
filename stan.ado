@@ -600,11 +600,11 @@ else {
 		file open `wrk' using "`working'", read text
 		file read `wrk' line
 		if "`line'" !="" {
-			shell copy "`wdir'/`modelfile'" "`cdir'/`modelfile'"
+			shell cp "`wdir'/`modelfile'" "`cdir'/`modelfile'"
 		}
 	}
 	else {
-		shell copy "`wdir'/`modelfile'" "`cdir'/`modelfile'"
+		shell cp "`wdir'/`modelfile'" "`cdir'/`modelfile'"
 	}
 	shell cp "`wdir'/`modelfile'" "`cdir'/`modelfile'"
 	cd "`cdir'"
@@ -618,26 +618,81 @@ else {
 	dis as result "##############################"
 	dis as result "###  Output from sampling  ###"
 	dis as result "##############################"
+<<<<<<< HEAD
 	shell `execfile' method=sample `warmcom' `itercom' `thincom' `seedcom' algorithm=hmc `stepcom' `stepjcom' output file="`wdir'/`outputfile'.csv" data file="`wdir'/`datafile'"
 	shell bin/stansummary "`wdir'/`outputfile'.csv"
+=======
+	if `chains'==1 {
+		shell ./`execfile' random `seedcom' method=sample `warmcom' `itercom' `thincom' algorithm=hmc `stepcom' `stepjcom' output file="`wdir'/`outputfile'.csv" data file="`wdir'/`datafile'"
+	}
+	else {
+		shell for i in {1..`chains'}; do ./`execfile' id=\$i random `seedcom' method=sample `warmcom' `itercom' `thincom' algorithm=hmc `stepcom' `stepjcom' output file="`wdir'/`outputfile'\$i.csv" data file="`wdir'/`datafile'" & done
+	}
+	shell bin/stansummary "`wdir'/`outputfile'*.csv"
+>>>>>>> multiple-chains-mac-linux
 
 	// reduce csv file
-	file open ofile using "`wdir'/`outputfile'.csv", read
-	file open rfile using "`wdir'/`chainfile'", write text replace
-	capture noisily {
-		file read ofile oline
-		while r(eof)==0 {
-			if length("`oline'")!=0 {
-				local firstchar=substr("`oline'",1,1)
-				if "`firstchar'"!="#" {
-					file write rfile "`oline'" _n
+	if `chains'==1 {
+		file open ofile using "`wdir'/`outputfile'.csv", read
+		file open rfile using "`wdir'/`chainfile'", write text replace
+		capture noisily {
+			file read ofile oline
+			while r(eof)==0 {
+				if length("`oline'")!=0 {
+					local firstchar=substr("`oline'",1,1)
+					if "`firstchar'"!="#" {
+						file write rfile "`oline'" _n
+					}
+				}
+				file read ofile oline
+			}
+		}
+		file close ofile
+		file close rfile
+	}
+	else {
+		local headerline=1 // flags up when writing the variable names in the header
+		file open ofile using "`wdir'/`outputfile'1.csv", read
+		file open rfile using "`wdir'/`chainfile'", write text replace
+		capture noisily {
+			file read ofile oline
+			while r(eof)==0 {
+				if length("`oline'")!=0 {
+					local firstchar=substr("`oline'",1,1)
+					if "`firstchar'"!="#" {
+						if `headerline'==1 {
+							file write rfile "`oline',chain" _n
+							local headerline=0
+						}
+						else {
+							file write rfile "`oline',1" _n
+						}
+					}
+				}
+				file read ofile oline
+			}
+		}
+		file close ofile
+		forvalues i=2/`chains' {
+			file open ofile using "`wdir'/`outputfile'`i'.csv", read
+			capture noisily {
+				file read ofile oline
+				while r(eof)==0 {
+					if length("`oline'")!=0 {
+						local firstchar=substr("`oline'",1,1)
+						// skip comments and (because these are chains 2-n)
+						// the variable names (which always start with lp__)
+						if "`firstchar'"!="#" & "`firstchar'"!="l" {
+							file write rfile "`oline',`i'" _n
+						}
+					}
+					file read ofile oline
 				}
 			}
-			file read ofile oline
+			file close ofile
 		}
+		file close rfile
 	}
-	file close ofile
-	file close rfile
 
 	if "`mode'"=="mode" {
 		dis as result "#############################################"
