@@ -30,6 +30,7 @@
 {synopt:{opt model:file(filename)}}.stan file containing the Stan model, or location of text file into which the model will be written{p_end}
 {synopt:{opt inline}}read the .stan model from a comment block insid ethe do-file{p_end}
 {synopt:{opt thisfile(filename)}}the name (and path, if required) of the current do-file, if inline has been specified (see Remarks){p_end}
+{synopt:{opt rerun}}if specified, uses the existing executable file with the same name as modelfile (in Windows, it will have .exe extension). This should exist in the working directory. Be aware it will be copied into the cmdstandir (see below), overwriting any existing file of that name.{p_end}
 {synopt:{opt init:sfile(filename)}}text file in R / S-plus format containing initial values{p_end}
 {synopt:{opt diag:nose}}run Stan's diagnostics{p_end}
 {synopt:{opt output:file(filename)}}destination text file for Stan outputs{p_end}

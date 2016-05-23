@@ -3,7 +3,7 @@ capture program drop stan
 program define stan
 version 11.0
 syntax varlist [if] [in] [, DATAfile(string) MODELfile(string) ///
-	INLINE THISFILE(string) ///
+	INLINE THISFILE(string) RERUN ///
 	INITsfile(string) LOAD DIAGnose OUTPUTfile(string) MODESFILE(string) ///
 	CHAINFile(string) WINLOGfile(string) SEED(integer -1) CHAINS(integer 1) ///
 	WARMUP(integer -1) ITER(integer -1) THIN(integer -1) CMDstandir(string) ///
@@ -22,6 +22,10 @@ syntax varlist [if] [in] [, DATAfile(string) MODELfile(string) ///
 		current active do-file, used to locate the model inline. If
 		thisfile is omitted, Stata will look at the most recent SD*
 		file in c(tmpdir)
+	rerun: if specified, uses the existing executable file with the same name as
+		modelfile (in Windows, it will have .exe extension). This should exist in the
+		cmdstandir (see below). Be aware it will be copied into the working directory,
+		overwriting any existing file of that name.
 	initsfile: name of initial values file in R/S that you have already saved
 	load: read iterations into Stata
 	diagnose: run gradient diagnostics
@@ -54,7 +58,7 @@ Notes:
 		have anything called output.csv or modes.csv etc. - these will be overwritten!
 */
 
-local statastanversion="1.2"
+local statastanversion="1.2.1"
 local wdir="`c(pwd)'"
 local cdir="`cmdstandir'"
 
@@ -417,25 +421,36 @@ restore
 ######################## Windows code #########################
 #############################################################*/
 if lower("$S_OS")=="windows" {
-	// check if modelfile already exists in cdir
-	capture confirm file "`cdir'\\`modelfile'"
-	if !_rc {
-		// check they are different before copying and compiling
-		tempfile working
-		shell fc /lb2 "`wdir'\\`modelfile'" "`cdir'\\`modelfile'" > "`working'"
-		// if different shell copy "`wdir'\\`modelfile'" "`cdir'\\`modelfile'"
+	// unless re-running an existing compiled executable, move model to cmdstandir
+	if "`rerun'"!="rerun" {
+		// check if modelfile already exists in cdir
+		capture confirm file "`cdir'\\`modelfile'"
+		if !_rc {
+			// check they are different before copying and compiling
+			tempfile working
+			shell fc /lb2 "`wdir'\\`modelfile'" "`cdir'\\`modelfile'" > "`working'"
+			// if different shell copy "`wdir'\\`modelfile'" "`cdir'\\`modelfile'"
+		}
+		else {
+			windowsmonitor, command(copy "`wdir'\\`modelfile'" "`cdir'\\`modelfile'") ///
+				winlogfile(`winlogfile') waitsecs(30)
+		}
 	}
 	else {
-		windowsmonitor, command(copy "`wdir'\\`modelfile'" "`cdir'\\`modelfile'") ///
+		windowsmonitor, command(copy "`wdir'\\`execfile'" "`cdir'\\`execfile'") ///
 			winlogfile(`winlogfile') waitsecs(30)
 	}
-! copy "`cdir'\`winlogfile'" "`wdir'\winlog1"
+
+	! copy "`cdir'\`winlogfile'" "`wdir'\winlog1"
 	cd "`cdir'"
-	dis as result "###############################"
-	dis as result "###  Output from compiling  ###"
-	dis as result "###############################"
-	windowsmonitor, command(make "`execfile'") winlogfile(`winlogfile') waitsecs(30)
-! copy `cdir'\`winlogfile' `wdir'
+	
+	if "`rerun'"=="" {
+		dis as result "###############################"
+		dis as result "###  Output from compiling  ###"
+		dis as result "###############################"
+		windowsmonitor, command(make "`execfile'") winlogfile(`winlogfile') waitsecs(30)
+	}
+	! copy `cdir'\`winlogfile' `wdir'
 	! copy "`cdir'\`cppfile'" "`wdir'\`cppfile'"
 	! copy "`cdir'\`execfile'" "`wdir'\`execfile'"
 
@@ -590,31 +605,40 @@ if lower("$S_OS")=="windows" {
 #################### Linux / Mac code ###################
 #######################################################*/
 else {
-	// check if modelfile already exists in cdir
-	capture confirm file "`cdir'/`modelfile'"
-	if !_rc {
-		// check they are different before copying and compiling
-		tempfile working
-		shell diff -b "`wdir'/`modelfile'" "`cdir'/`modelfile'" > "`working'"
-		tempname wrk
-		file open `wrk' using "`working'", read text
-		file read `wrk' line
-		if "`line'" !="" {
+	// unless re-running an existing compiled executable, move model to cmdstandir
+	if "`rerun'"!="rerun" {
+		// check if modelfile already exists in cdir
+		capture confirm file "`cdir'/`modelfile'"
+		if !_rc {
+			// check they are different before copying and compiling
+			tempfile working
+			shell diff -b "`wdir'/`modelfile'" "`cdir'/`modelfile'" > "`working'"
+			tempname wrk
+			file open `wrk' using "`working'", read text
+			file read `wrk' line
+			if "`line'" !="" {
+				shell cp "`wdir'/`modelfile'" "`cdir'/`modelfile'"
+			}
+		}
+		else {
 			shell cp "`wdir'/`modelfile'" "`cdir'/`modelfile'"
 		}
-	}
-	else {
 		shell cp "`wdir'/`modelfile'" "`cdir'/`modelfile'"
 	}
-	shell cp "`wdir'/`modelfile'" "`cdir'/`modelfile'"
+	else {
+		shell cp "`wdir'/`execfile'" "`cdir'/`execfile'"
+	}
 	cd "`cdir'"
-	dis as result "###############################"
-	dis as result "###  Output from compiling  ###"
-	dis as result "###############################"
-	shell make "`execfile'"
-	// leave modelfile in cdir so make can check need to re-compile
-	// shell rm "`cdir'/`modelfile'"
-
+	
+	if "`rerun'"=="" {
+		dis as result "###############################"
+		dis as result "###  Output from compiling  ###"
+		dis as result "###############################"
+		shell make "`execfile'"
+		// leave modelfile in cdir so make can check need to re-compile
+		// shell rm "`cdir'/`modelfile'"
+	}
+	
 	dis as result "##############################"
 	dis as result "###  Output from sampling  ###"
 	dis as result "##############################"

@@ -34,7 +34,7 @@ capture file close sb
 
 // issue command, piping output to winlogfile
 //winexec "`wmbatch'" > "`winlogfile'"
-winexec "wmbatch.bat" > "`winlogfile'"
+winexec "wmbatch.bat" > "`winlogfile'" 2>&1
 
 // wait up to waitsecs seconds for winlogfile to appear
 local loopcount=0
