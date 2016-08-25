@@ -463,7 +463,7 @@ if lower("$S_OS")=="windows" {
 			winlogfile(`winlogfile') waitsecs(30)
 	}
 	else {
-		windowsmonitor, command(for /l %%x in (1,1,`chains') do start /b /w `cdir'\\`execfile' id=%%x random `seedcom' method=sample `warmcom' `itercom' `thincom' algorithm=hmc `stepcom' `stepjcom' output file="`wdir'\\`outputfile'%%x.csv" data file="`wdir'\\`datafile'") ///
+		windowsmonitor, command(for /l %%x in (1,1,`chains') do start /b /w `cdir'\\`execfile' id=%%x method=sample `warmcom' `itercom' `thincom' `seedcom' algorithm=hmc `stepcom' `stepjcom' output file="`wdir'\\`outputfile'%%x.csv" data file="`wdir'\\`datafile'") ///
 			winlogfile(`winlogfile') waitsecs(30)
 	}
 	! copy "`cdir'\`winlogfile'" "`wdir'\winlog3"
@@ -643,10 +643,10 @@ else {
 	dis as result "###  Output from sampling  ###"
 	dis as result "##############################"
 	if `chains'==1 {
-		shell ./`execfile' random `seedcom' method=sample `warmcom' `itercom' `thincom' algorithm=hmc `stepcom' `stepjcom' output file="`wdir'/`outputfile'.csv" data file="`wdir'/`datafile'"
+		shell ./`execfile' method=sample `warmcom' `itercom' `thincom' `seedcom' algorithm=hmc `stepcom' `stepjcom' output file="`wdir'/`outputfile'.csv" data file="`wdir'/`datafile'"
 	}
 	else {
-		shell for i in {1..`chains'}; do ./`execfile' id=\$i random `seedcom' method=sample `warmcom' `itercom' `thincom' algorithm=hmc `stepcom' `stepjcom' output file="`wdir'/`outputfile'\$i.csv" data file="`wdir'/`datafile'" & done
+		shell for i in {1..`chains'}; do ./`execfile' id=\$i method=sample `warmcom' `itercom' `thincom' `seedcom' algorithm=hmc `stepcom' `stepjcom' output file="`wdir'/`outputfile'\$i.csv" data file="`wdir'/`datafile'" & done
 	}
 	shell cp "`cdir'/`outputfile'"*".csv" "`wdir'/`outputfile'"*".csv"
 
