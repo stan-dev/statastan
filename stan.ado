@@ -58,7 +58,7 @@ Notes:
 		have anything called output.csv or modes.csv etc. - these will be overwritten!
 */
 
-local statastanversion="1.2.1"
+local statastanversion="1.2.2"
 local wdir="`c(pwd)'"
 local cdir="`cmdstandir'"
 
@@ -443,7 +443,7 @@ if lower("$S_OS")=="windows" {
 
 	! copy "`cdir'\`winlogfile'" "`wdir'\winlog1"
 	cd "`cdir'"
-	
+
 	if "`rerun'"=="" {
 		dis as result "###############################"
 		dis as result "###  Output from compiling  ###"
@@ -629,7 +629,7 @@ else {
 		shell cp "`wdir'/`execfile'" "`cdir'/`execfile'"
 	}
 	cd "`cdir'"
-	
+
 	if "`rerun'"=="" {
 		dis as result "###############################"
 		dis as result "###  Output from compiling  ###"
@@ -638,7 +638,7 @@ else {
 		// leave modelfile in cdir so make can check need to re-compile
 		// shell rm "`cdir'/`modelfile'"
 	}
-	
+
 	dis as result "##############################"
 	dis as result "###  Output from sampling  ###"
 	dis as result "##############################"
