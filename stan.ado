@@ -648,7 +648,7 @@ else {
 	else {
 		shell for i in {1..`chains'}; do ./`execfile' id=\$i random `seedcom' method=sample `warmcom' `itercom' `thincom' algorithm=hmc `stepcom' `stepjcom' output file="`wdir'/`outputfile'\$i.csv" data file="`wdir'/`datafile'" & done
 	}
-	shell bin/stansummary "`wdir'/`outputfile'*.csv"
+	shell bin/stansummary `wdir'/`outputfile'*.csv
 
 	// reduce csv file
 	if `chains'==1 {

@@ -12,7 +12,7 @@ StataStan comprises a command **stan**, a command **windowsmonitor** (which is r
 Most recent changes - version 1.2:
 * You can run multiple chains with the **chains** option.
 * The **chainfile** option can be abbreviated to chainf but no shorter. This avoids confusion with the new **chains** option.
-* Whatever name you give in **outputfile** will now have ".csv" appended on the end. If you run more than 1 chain, you will get consecutively numbered files like output1.csv, output2.csv, etc.
+* Whatever name you give in **outputfile** will now have ".csv" appended on the end. If you run more than 1 chain, you will get consecutively numbered files like output1.csv, output2.csv, etc. **On Mac and Linux machines, the name should contain no spaces. We will try to work around this in future versions.**
 * To avoid clashes with existing files, both the working directory and the CmdStan directory get checked for pre-existing output*.csv files.
 * The StataStan and CmdStan version numbers are displayed at the beginning of output. The CmdStan number will be used in future versions for back compatibility.
 
@@ -33,12 +33,12 @@ Getting Started
 
 Testing
 -----------------
-StataStan has been tested with CmdStan 2.9.0, Stata versions from 11.2 to 14.0, and Stata flavors IC and SE. We have not added multicore capacity yet, but it is on the to-do list and is easy to do (see Stan manual).
-
-We have run it successfully on Linux, Mac and Windows, but we would like to hear from you if it works (or not) with Windows 10 or versions of Stata older than 11.
+StataStan has been tested with CmdStan 2.9.0, Stata versions from 11.2 to 14.0, and Stata flavors IC and SE. We have run it successfully on Linux, Mac and Windows, but we would like to hear from you if it works (or not) with Windows 10 or versions of Stata older than 11.
 
 Other notes
 ---------------
+* We find that specifying the CmdStan directory with a tilde in Mac OSX causes problems, and a complete path is advisable
+* On Mac and Linux, it is a really good idea to have the working directory and cmdstan directory paths without spaces. For parallel chains, this is essential at present (v1.2.2)
 * Non-existent globals and matrices, and non-numeric globals, get quietly ignored
 * Missing values are removed casewise by default (but you can change this)
 * Users need to take care not to leave output file names as defaults if they have anything precious called output.csv or modes.csv etc. - these files will be overwritten
