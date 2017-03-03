@@ -58,7 +58,7 @@ Notes:
 		have anything called output.csv or modes.csv etc. - these will be overwritten!
 */
 
-local statastanversion="1.2.2"
+local statastanversion="1.2.3"
 local wdir="`c(pwd)'"
 local cdir="`cmdstandir'"
 
@@ -784,7 +784,7 @@ if "`load'"=="load" {
 	qui ds
 	local allvars=r(varlist)
 	gettoken v1 vn: allvars, parse(" ")
-	while "`v1'"!="n_divergent__" {
+	while "`v1'"!="energy__" {
 		gettoken v1 vn: vn, parse(" ")
 	}
 	tabstat `vn', stat(n mean sd semean min p1 p5 p25 p50 p75 p95 p99)
