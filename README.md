@@ -7,9 +7,16 @@
 
 Current status
 ---------
-StataStan comprises a command **stan**, a command **windowsmonitor** (which is required for **stan** if you are using Windows), and a developing set of template functions under stan_examples that write your data to specific models, so that Stata users can become familiar with Stan without having to write the model code immediately. We invite all Stata users to test it out and give us feedback, either here on Github, or by email to Robert Grant at [robertstats@live.com](mailto:robertstats@live.com).
+StataStan comprises a command **stan**, a command **windowsmonitor** (which is required for **stan** if you are using Windows), and a developing set of template functions under stan_examples that write your data to specific models, so that Stata users can become familiar with Stan without having to write the model code immediately. We invite all Stata users to test it out and give us feedback, either here on Github, or by email to Robert Grant at [robert@bayescamp.com](mailto:robert@bayescamp.com).
 
-Most recent changes - version 1.2:
+Most recent changes - version 1.2.3, SSC release 3 March 2017:
+* Incorporates changes to Stan output variables from CmdStan (reads in columns after energy__)
+* Bug in the load option fixed
+
+Version 1.2.1 & 1.2.2, SSC release 16 Sep 2016, and hotfix 1 Oct 2016
+* various bug fixes too tedious to list - see the commits for stan.ado for details
+
+Version 1.2:
 * You can run multiple chains with the **chains** option.
 * The **chainfile** option can be abbreviated to chainf but no shorter. This avoids confusion with the new **chains** option.
 * Whatever name you give in **outputfile** will now have ".csv" appended on the end. If you run more than 1 chain, you will get consecutively numbered files like output1.csv, output2.csv, etc. **On Mac and Linux machines, the name should contain no spaces. We will try to work around this in future versions.**
@@ -21,12 +28,6 @@ Version 1.1, SSC release 29 Feb 2016:
 * all files are cleaned up from the CmdStan directory and appear in the working directory instead
 * added a 'keepfiles' option - without this, wmbatch (in Windows), winlogfile (in Windows), outputfile, .hpp will be deleted. The executable, datafile and chainsfile are retained no matter what.
 
-Version 1.2.1 & 1.2.2, SSC release 16 Sep 2016, and hotfix 1 Oct 2016
-* various bug fixes too tedious to list - see the commits for stan.ado for details
-
-Version 1.2.3, pushed 3 Mar 2017
-* bug fix for the load option
-
 **stan** will fit a Stan model by Hamiltonian Monte Carlo. You can also ask for the posterior mode, which is found by optimization with the BFGS (or L-BFGS) algorithm. We intend to create more Stata commands:
 * allowing CODA-style diagnostics and plotting after a model has been fitted and chains stored,
 * fitting specific models given variables, matrices, globals -- in the style of the R package rstanarm,
@@ -34,7 +35,7 @@ Version 1.2.3, pushed 3 Mar 2017
 
 Getting Started
 ----------------
-1. Download and install [CmdStan](http://mc-stan.org/interfaces/cmdstan.html). Make sure you read the installation instructions and platform-specific appendix before installing. In particular, _if you are using 32-bit Windows_, you will need to add a file called 'local' to the 'make' folder before you run the *make* command, which should simply contain the text: *BIT=32*
+1. Download and install [CmdStan](http://mc-stan.org/users/interfaces/cmdstan.html). Make sure you read the installation instructions and platform-specific appendix before installing. In particular, _if you are using 32-bit Windows_, you will need to add a file called 'local' to the 'make' folder before you run the *make* command, which should simply contain the text: *BIT=32*
 1. Don't forget to specify the number of CPU cores when you build CmdStan, so you can take advantage of parallel chains and the faster model-fitting that can deliver.
 1. Download the .ado and.sthlp files and save them in your Stata personal ado folder (click [here](http://www.stata.com/support/faqs/programming/personal-ado-directory/) if you don't know where this is)
 1. Try out the different examples in the stan-example.do file, or under **help stan**
