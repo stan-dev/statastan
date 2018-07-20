@@ -394,7 +394,7 @@ if "`matrices'"!="" {
 				}
 				// write final cell
 				local mval=`mat'[`mrow',`mcol']
-				file write dataf "`mval'), .Dim=c(`mrow',`mcol'))"
+				file write dataf "`mval'), .Dim=c(`mrow',`mcol'))" _n
 			}
 		}
 	}
