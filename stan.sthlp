@@ -26,6 +26,7 @@
 {synopthdr}
 {synoptline}
 {syntab:Main}
+{synopt:{opt cmd:standir(path)}}location of the CmdStan directory{p_end}
 {synopt:{opt data:file(filename)}}destination text file for data on their way to Stan{p_end}
 {synopt:{opt model:file(filename)}}.stan file containing the Stan model, or location of text file into which the model will be written{p_end}
 {synopt:{opt inline}}read the .stan model from a comment block insid ethe do-file{p_end}
@@ -63,9 +64,8 @@
 {pstd}
 {cmd:stan} is the Stata interface to the open-source Bayesian software Stan, which works by translating a simple model language to C++ and compiling that.
 Stan utilises Hamiltonian Monte Carlo through the No U-Turn Sampler (NUTS) to provide much faster and more stable sampling than could be achieved with the Metropolis-Hastings algorithm or the Gibbs sampler (these are the methods implemented in BUGS, JAGS and Stata commands like {cmd:bayesmh} and the {cmd:bayes} prefix).
-In keeping with other Stan interfaces, it is known as StataStan when regarded as a package along with {help windowsmonitor}. Additional {cmd:stan_*} commands are planned, which will populate specific models, like typing {cmd: bayes logistic} and the like in Stata 15 and up.
-In essence, it is a wrapper for the CmdStan command-line interface.
-Data and results are passed between Stata and Stan via text files.
+In keeping with other Stan interfaces, it is known as StataStan when regarded as a package along with {help windowsmonitor}. Additional {cmd:stan_*} commands are planned, which will populate specific models, like typing {cmd: bayes logistic} and the like in Stata 15 and up. The most recent updates can be found at github.com/stan-dev/statastan
+In essence, it is a wrapper for the CmdStan command-line interface. Data and results are passed between Stata and Stan via text files.
 
 {pstd}
 To use {cmd:stan}, you will need to have CmdStan installed from http://mc-stan.org/interfaces/cmdstan.html where you will also find instructions on installation and checking that you can compile C++ programs.
