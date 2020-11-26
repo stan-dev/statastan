@@ -5,11 +5,27 @@
 
 **StataStan** is the [Stata](http://www.stata.com) interface to [Stan](http://mc-stan.org).
 
-Current status
----------
-StataStan comprises a command **stan**, a command **windowsmonitor** (which is required for **stan** if you are using Windows), and a developing set of template functions under stan_examples that write your data to specific models, so that Stata users can become familiar with Stan without having to write the model code immediately. We invite all Stata users to test it out and give us feedback, either here on Github, or by email to Robert Grant at [robert@bayescamp.com](mailto:robert@bayescamp.com).
 
-Most recent changes - version 1.2.3, SSC release 3 March 2017:
+StataStan comprises a command **stan**. If you are using Windows, you will also have to install the command **windowsmonitor**. Queries by email to Robert Grant at [robert@bayescamp.com](mailto:robert@bayescamp.com).
+
+**stan** will fit a Stan model by Hamiltonian Monte Carlo. You can also ask for the posterior mode, which is found by optimization with the BFGS (or L-BFGS) algorithm. We intend to create more Stata commands:
+* allowing CODA-style diagnostics and plotting after a model has been fitted and chains stored,
+* fitting specific models given variables, matrices, globals -- in the style of the R package rstanarm,
+* and a test script.
+
+Current status update (from Robert)
+---------
+
+Since version 16, Stata has featured close integration with Python, so you can type Python code inside your Stata script, and pass objects back and forth.
+
+I wrote StataStan in 2014-15 and it is one of those make-do interfaces that are just wrappers for CmdStan. It relies on passing data, model, chains etc via text files, and that has always been a weakness, producing occasional problems dependent on users' OSs, security settings and so on.
+
+My view now is that anyone who wants to use Stan from Stata should do so through PyStan or CmdStanPy. In interface terms, the speed and stability will be better than the -stan- command. I intend to freeze StataStan for Stata versions pre-16 but not to maintain compatibility with Stata going forward. It's hard to guess whether there will be need/demand to maintain compatibility with future versions of CmdStan, so post any such concerns here as issues, as they emerge.
+
+
+Recent changes
+----------------
+Version 1.2.3, SSC release 3 March 2017:
 * Incorporates changes to Stan output variables from CmdStan (reads in columns after energy__)
 * Bug in the load option fixed
 
@@ -28,10 +44,6 @@ Version 1.1, SSC release 29 Feb 2016:
 * all files are cleaned up from the CmdStan directory and appear in the working directory instead
 * added a 'keepfiles' option - without this, wmbatch (in Windows), winlogfile (in Windows), outputfile, .hpp will be deleted. The executable, datafile and chainsfile are retained no matter what.
 
-**stan** will fit a Stan model by Hamiltonian Monte Carlo. You can also ask for the posterior mode, which is found by optimization with the BFGS (or L-BFGS) algorithm. We intend to create more Stata commands:
-* allowing CODA-style diagnostics and plotting after a model has been fitted and chains stored,
-* fitting specific models given variables, matrices, globals -- in the style of the R package rstanarm,
-* and a test script.
 
 Getting Started
 ----------------
@@ -44,19 +56,19 @@ Getting Started
 
 Testing
 -----------------
-StataStan has been tested with CmdStan 2.9 to 2.14, Stata versions from 11.2 to 14.2, and Stata flavors IC and SE. We have run it successfully on Linux, Mac and Windows, but we would like to hear from you if it works (or not) with Windows 10 or versions of Stata older than 11.
+StataStan has been tested with CmdStan 2.9 to 2.25, Stata versions from 11.2 to 16.1, and Stata flavors from IC to MP2. We have run it successfully on Linux (Debian), Mac (up to Mojave) and Windows (up to 10).
 
 Other notes
 ---------------
-* We find that specifying the CmdStan directory with a tilde in Mac OSX causes problems, and a complete path is advisable
-* On Mac and Linux, it is a really good idea to have the working directory and cmdstan directory paths without spaces. For parallel chains, this is essential at present (v1.2.2)
-* Non-existent globals and matrices, and non-numeric globals, get quietly ignored
+* We find that specifying the CmdStan directory with a tilde in Mac OSX causes problems, and a complete path is advisable.
+* On Mac and Linux, it is a really good idea to have the working directory and cmdstan directory paths without spaces. For parallel chains, this is essential.
+* Non-existent globals and matrices, and non-numeric globals, get quietly ignored.
 * Missing values are removed casewise by default (but you can change this)
-* Users need to take care not to leave output file names as defaults if they have anything precious called output.csv or modes.csv etc. - these files will be overwritten
+* Users need to take care not to leave output file names as defaults if they have anything precious called output.csv or modes.csv etc. - these files will be overwritten.
 
 Makers
 ---------
-StataStan was mostly made by @robertgrant with valuable contributions from @sergiocorreia, @felixleungsc, @syclik, @danielcfurr, Charles Opondo and @bob-carpenter, plus constant encouragement and strategic direction from @gelman. We also learnt a lot from John Thompson's Stata commands for BUGS. We welcome ideas and contributions and will credit you here. StataStan was initially partly funded (grant holders Andrew Gelman and Sophia Rabe-Hesketh) by the Institute of Education Sciences, USA.
+StataStan was mostly made by @robertgrant with valuable contributions from @sergiocorreia, @felixleungsc, @syclik, @danielcfurr, Charles Opondo and @bob-carpenter, plus constant encouragement and strategic direction from @gelman. We also learnt a lot from John Thompson's Stata commands for BUGS. StataStan was initially partly funded (grant holders Andrew Gelman and Sophia Rabe-Hesketh) by the Institute of Education Sciences, USA.
 
 Licensing
 ---------
