@@ -8,7 +8,7 @@ syntax varlist [if] [in] [, DATAfile(string) MODELfile(string) ///
 	CHAINFile(string) WINLOGfile(string) SEED(integer -1) CHAINS(integer 1) ///
 	WARMUP(integer -1) ITER(integer -1) THIN(integer -1) CMDstandir(string) ///
 	MODE SKipmissing MATrices(string) GLobals(string) KEEPFiles ///
-	STEPSIZE(real 1) STEPSIZEJITTER(real 0)]
+	STEPSIZE(real 1) STEPSIZEJITTER(real 0) NOPywarn]
 
 /* options:
 	datafile: name to write data into in R/S format (in working dir)
@@ -50,6 +50,7 @@ syntax varlist [if] [in] [, DATAfile(string) MODELfile(string) ///
 		the chainfile.
 	stepsize: HMC stepsize, gets passed to CmdStan
 	stepsize_jitter: HMC stepsize jitter, gets passed to CmdStan
+	nopywarn: do not show the warning for Stata version 16 and up, advising use of Python
 
 Notes:
 	non-existent globals and matrices, and non-numeric globals, get quietly ignored
@@ -58,7 +59,12 @@ Notes:
 		have anything called output.csv or modes.csv etc. - these will be overwritten!
 */
 
-local statastanversion="1.2.3"
+local statacurrentversion=c(stata_version)
+if `statacurrentversion'>15.9 & "`nopywarn'"=="" {
+	display as text "Note! Since Stata version 16.0, Stan can be accessed via Python integration. Stan developers recommend this for speed and stability. StataStan (the -stan- command) is not maintained for Stata 16.0 and later versions."
+}
+
+local statastanversion="1.2.4"
 local wdir="`c(pwd)'"
 local cdir="`cmdstandir'"
 

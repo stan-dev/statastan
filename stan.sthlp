@@ -1,5 +1,5 @@
 {smcl}
-{* *! version 1.2  08mar2016}{...}
+{* *! version 1.2.4  03mar2021}{...}
 {vieweralsosee "" "--"}{...}
 {vieweralsosee "windowsmonitor" "help windowsmonitor"}{...}
 {viewerjumpto "Syntax" "stan##syntax"}{...}
@@ -11,6 +11,8 @@
 
 {phang}
 {bf:stan} {hline 2} Use Stan software for Bayesian modeling: translate a Stan model to C++, compile to an executable file, sample from the posteriors using this, and display summaries.
+
+Note! Since Stata version 16.0, Stan can be accessed via Python integration. Stan developers recommend this for speed and stability. StataStan (the -stan- command) is not maintained for Stata 16.0 and later versions.
 
 
 {marker syntax}{...}
@@ -47,9 +49,10 @@
 {synopt:{opt sk:ipmissing}}remove missing data observation-wise before sending to Stan{p_end}
 {synopt:{opt mat:rices(string)}}list of matrices to send to Stan, or "all" to send all current matrices{p_end}
 {synopt:{opt gl:obals(string)}}list of globals to send to Stan, or "all" to send all current global macros{p_end}
-{synopt:{opt keepf:iles(integer)}}keep all files produced along the way; if not specified, the model file, C++ file, executable file, chains file and (if produced) modes file will be retained{p_end}
+{synopt:{opt keepf:iles}}keep all files produced along the way; if not specified, the model file, C++ file, executable file, chains file and (if produced) modes file will be retained{p_end}
 {synopt:{opt stepsize(integer)}}HMC stepsize, default 1 (see Stan manual){p_end}
 {synopt:{opt stepsizejitter(integer)}}HMC stepsize jitter, default 0 (see Stan manual){p_end}
+{synopt:{opt nop:ywarn}}do not display the warning text about using Python in Stata 16+{p_end}
 
 
 {synoptline}
