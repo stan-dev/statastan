@@ -83,10 +83,10 @@ dis as result "StataStan version: `statastanversion'"
 dis as result "CmdStan version: `cmdstanversion'"
 file close cv
 if lower("$S_OS")=="windows" {
-	shell del "`cmdstanversioncheck'"
+	qui shell del "`cmdstanversioncheck'"
 }
 else {
-	shell rm "`cmdstanversioncheck'"
+	qui shell rm "`cmdstanversioncheck'"
 }
 
 // defaults
@@ -448,7 +448,7 @@ if lower("$S_OS")=="windows" {
 	}
 
 	! copy "`cdir'\`winlogfile'" "`wdir'\winlog1"
-	cd "`cdir'"
+	qui cd "`cdir'"
 
 	if "`rerun'"=="" {
 		dis as result "###############################"
@@ -591,20 +591,20 @@ if lower("$S_OS")=="windows" {
 	}
 
 	// tidy up files
-	!del "`winlogfile'"
-	!del "wmbatch.bat"
-	!del "`modelfile'"
-	!copy "`cppfile'" "`wdir'\\`cppfile'"
-	!copy "`execfile'" "`wdir'\\`execfile'"
+	qui shell del "`winlogfile'"
+	qui shell del "wmbatch.bat"
+	qui shell del "`modelfile'"
+	qui shell copy "`cppfile'" "`wdir'\\`cppfile'"
+	qui shell copy "`execfile'" "`wdir'\\`execfile'"
 	if "`keepfiles'"=="" {
-		!del "`wdir'\\`winlogfile'"
-		!del "`wdir'\\wmbatch.bat"
-		!del "`wdir'\\`outputfile'*.csv"
+		qui shell del "`wdir'\\`winlogfile'"
+		qui shell del "`wdir'\\wmbatch.bat"
+		qui shell del "`wdir'\\`outputfile'*.csv"
 	}
-	!del "`cdir'\\`cppfile'"
-	!del "`cdir'\\`execfile'"
+	qui shell del "`cdir'\\`cppfile'"
+	qui shell del "`cdir'\\`execfile'"
 
-	cd "`wdir'"
+	qui cd "`wdir'"
 }
 
 /*#######################################################
@@ -634,7 +634,7 @@ else {
 	else {
 		shell cp "`wdir'/`execfile'" "`cdir'/`execfile'"
 	}
-	cd "`cdir'"
+	qui cd "`cdir'"
 
 	if "`rerun'"=="" {
 		dis as result "###############################"
@@ -642,7 +642,7 @@ else {
 		dis as result "###############################"
 		shell make "`execfile'"
 		// leave modelfile in cdir so make can check need to re-compile
-		// shell rm "`cdir'/`modelfile'"
+		// qui shell rm "`cdir'/`modelfile'"
 	}
 
 	dis as result "##############################"
@@ -766,19 +766,19 @@ else {
 	}
 
 		// tidy up files
-	!rm "`winlogfile'"
-	!rm "wmbatch.bat"
-	!rm "`modelfile'"
-	!cp "`cppfile'" "`wdir'/`cppfile'"
-	!cp "`execfile'" "`wdir'/`execfile'"
+	qui shell rm "`winlogfile'"
+	qui shell rm "wmbatch.bat"
+	qui shell rm "`modelfile'"
+	qui shell cp "`cppfile'" "`wdir'/`cppfile'"
+	qui shell cp "`execfile'" "`wdir'/`execfile'"
 	if "`keepfiles'"=="" {
-		!rm "`wdir'/`outputfile'.csv"
+		qui shell rm "`wdir'/`outputfile'.csv"
 	}
-	!rm "`cdir'/`cppfile'"
-	!rm "`cdir'/`execfile'"
+	qui shell rm "`cdir'/`cppfile'"
+	qui shell rm "`cdir'/`execfile'"
 
 
-	cd "`wdir'"
+	qui cd "`wdir'"
 }
 
 if "`load'"=="load" {
