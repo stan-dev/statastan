@@ -25,6 +25,10 @@ My view now is that anyone who wants to use Stan from Stata should do so through
 
 Recent changes
 ----------------
+Version 1.2.4, SSC release 4 March 2021:
+* A warning is displayed if Stata version is 16.0 or later, advising the user to consider using PyStan or CmdStanPy via Python-Stata integration instead. This can be suppressed by the new 'nopywarn' option.
+* System calls to copy and delete files are now done 'quietly'. Sometimes, the system reported "Error: file output.csv does not exist" and the like, which looked pretty alarming.
+
 Version 1.2.3, SSC release 3 March 2017:
 * Incorporates changes to Stan output variables from CmdStan (reads in columns after energy__)
 * Bug in the load option fixed
